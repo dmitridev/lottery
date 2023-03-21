@@ -1,0 +1,57 @@
+[23-Jan-2023 19:56:03 UTC] PHP Deprecated:  Array and string offset access syntax with curly braces is deprecated in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/vendor/electrolinux/phpquery/phpQuery/phpQuery/phpQueryObject.php on line 1040
+[23-Jan-2023 19:56:03 UTC] PHP Deprecated:  Array and string offset access syntax with curly braces is deprecated in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/vendor/electrolinux/phpquery/phpQuery/phpQuery/phpQueryObject.php on line 1055
+[23-Jan-2023 19:56:03 UTC] PHP Deprecated:  Function create_function() is deprecated in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/vendor/electrolinux/phpquery/phpQuery/phpQuery/phpQueryObject.php on line 1027
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Warning:  min(): Array must contain at least one element in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 336
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Warning:  min(): Array must contain at least one element in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 338
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Warning:  max(): Array must contain at least one element in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 341
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Warning:  max(): Array must contain at least one element in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 344
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Warning:  min(): Array must contain at least one element in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 344
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 0 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 356
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 359
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 2 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 362
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 0 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 365
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 368
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 2 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 371
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 375
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 0 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 375
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 0 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 406
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 2 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 2 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 0 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[23-Jan-2023 22:56:03 Europe/Moscow] PHP Notice:  Undefined offset: 0 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[26-Jan-2023 17:52:18 UTC] PHP Deprecated:  Array and string offset access syntax with curly braces is deprecated in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/vendor/electrolinux/phpquery/phpQuery/phpQuery/phpQueryObject.php on line 1040
+[26-Jan-2023 17:52:18 UTC] PHP Deprecated:  Array and string offset access syntax with curly braces is deprecated in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/vendor/electrolinux/phpquery/phpQuery/phpQuery/phpQueryObject.php on line 1055
+[26-Jan-2023 17:52:18 UTC] PHP Deprecated:  Function create_function() is deprecated in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/vendor/electrolinux/phpquery/phpQuery/phpQuery/phpQueryObject.php on line 1027
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Warning:  min(): Array must contain at least one element in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 336
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Warning:  min(): Array must contain at least one element in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 338
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Warning:  max(): Array must contain at least one element in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 341
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Warning:  max(): Array must contain at least one element in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 344
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Warning:  min(): Array must contain at least one element in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 344
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 0 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 356
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 359
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 2 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 362
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 0 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 365
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 368
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 2 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 371
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 375
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 0 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 375
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 0 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 406
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 2 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 2 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 0 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 1 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[26-Jan-2023 20:52:18 Europe/Moscow] PHP Notice:  Undefined offset: 0 in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/functions.php on line 411
+[27-Jan-2023 10:44:16 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function get_field() in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/templates/template-for-participants.php:31
+Stack trace:
+#0 /home/s/sergej06/lot.sender.website/public_html/wp-includes/template-loader.php(106): include()
+#1 /home/s/sergej06/lot.sender.website/public_html/wp-blog-header.php(19): require_once('/home/s/sergej0...')
+#2 /home/s/sergej06/lot.sender.website/public_html/index.php(17): require('/home/s/sergej0...')
+#3 {main}
+  thrown in /home/s/sergej06/lot.sender.website/public_html/wp-content/themes/lot/templates/template-for-participants.php on line 31
