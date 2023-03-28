@@ -52,10 +52,11 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
             	tr.classList.add('table-row');
             	tr.innerHTML = `<td data-name="ID"></td>
                         <td><input data-name="NUMBER1" value=""></td>
-	<td><input data-name="NUMBER2" value=""></td>
-	<td><input data-name="NUMBER3" value=""></td>
+	                    <td><input data-name="NUMBER2" value=""></td>
+	                    <td><input data-name="NUMBER3" value=""></td>
                         <td>
                             <button class="delete_data" onclick="delete_data(this)">x</button>
+                            <button class="all_numbers_is_fell_out" onclick="all_numbers_is_fell_out(this)">Выпали все числа</button>
                         </td>`;
             document.querySelector('.lottery-table.edit').appendChild(tr);
 		}
@@ -154,11 +155,21 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
         $this.disabled = false;
     }
 
+
+    
+        function all_numbers_is_fell_out($this){
+            const inputs = Array.from($this.closest('.table-row').querySelectorAll('input[data-name^="NUMBER"]'));
+            inputs.forEach(input => input.value = 0);
+        }
+
+        window.all_numbers_is_fell_out = all_numbers_is_fell_out;
+
         
         window.add_new = add_new;
         window.update_data = update_data;
         window.delete_data = delete_data;
         window.update_table = update_table;
+        console.log(add_new);
 
     </script>
 
@@ -172,14 +183,19 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                                 <?= $row['ID'] ?>
                             </td>
                             <td><input data-name="NUMBER1" value="<?= $row['NUMBER1'] ?>"></td>
-	<td><input data-name="NUMBER2" value="<?= $row['NUMBER2'] ?>"></td>
-	<td><input data-name="NUMBER3" value="<?= $row['NUMBER3'] ?>"></td>
+	                        <td><input data-name="NUMBER2" value="<?= $row['NUMBER2'] ?>"></td>
+	                        <td><input data-name="NUMBER3" value="<?= $row['NUMBER3'] ?>"></td>
+                            <td>
+                                <button class="delete_data" onclick="delete_data(this)">x</button>
+                                <button class="all_numbers_is_fell_out" onclick="all_numbers_is_fell_out(this)">Выпали все числа</button>
+                                
+                            </td>
                         </tr>
                     <?php } ?>
                 </tbody>
             </table>
             <button class="add_new" onclick="add_new()"> + Добавить данные </button>
-            <button class="load_data" onclick="update_data()"> загрузить список </button>
+            <button class="load_data" onclick="update_data()"> Загрузить список </button>
             <button class="update_data" onclick=update_table(this)> Обновить данные </button>
             <span>Дата последнего обновления: <span class="update-time">
                     <?= $update ?>
@@ -236,8 +252,8 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                                 echo "green-header"; ?>
                                     "><?= $row['VALUE_CONDITION'] ?>
                             </th>
-                            
-                            <? // нужно выбрать цвет для этой штуки. ?>
+
+                            <?php // нужно выбрать цвет для этой штуки. ?>
                             <td <?php if ($diff_yes == 0)
                                 echo 'style="' . $array_of_styles[0] . '"' ?> data-name="VALUE_YES">
                                 <?= $row['VALUE_YES'] ?></td>

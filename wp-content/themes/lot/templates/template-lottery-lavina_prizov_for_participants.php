@@ -206,7 +206,7 @@ $res2 = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`
                 </tbody>
             </table>
             <button class="add_new" onclick="add_new()"> + Добавить данные </button>
-            <button class="load_data" onclick="update_data()"> загрузить список </button>
+            <button class="load_data" onclick="update_data()"> Загрузить список </button>
             <button class="update_data" onclick=update_table(this)> Обновить данные </button>
             <span>Дата последнего обновления: <span class="update-time">
                     <?= $update ?>

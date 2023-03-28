@@ -56,7 +56,7 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where LOTTERY_NAME
                 </tbody>
             </table>
             <button class="add_new"> + Добавить данные </button>
-            <button class="load_data" onclick="update_data()"> загрузить список </button>
+            <button class="load_data" onclick="update_data()"> Загрузить список </button>
             <button class="update_data"> Обновить данные </button>
             <span>Дата последнего обновления: <span class="update-time">
                     <?= $update ?>

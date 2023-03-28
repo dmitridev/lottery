@@ -14,6 +14,22 @@ global $wpdb;
 
 $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`='12_24_for_participants'", ARRAY_A);
 ?>
+<style>
+    input[data-name^="NUMBER"] {
+        width: 50px;
+        margin-right: 10px;
+    }
+
+    td[data-name="ID"] {
+        width: 72px;
+    }
+
+    .table-row {
+        display: flex;
+        flex-flow: row wrap;
+    }
+</style>
+
 <main class="for-participants пав">
     <section class="header">
         <div class="container">
@@ -190,7 +206,7 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                 </tbody>
             </table>
             <button class="add_new" onclick="add_new()"> + Добавить данные </button>
-            <button class="load_data" onclick="update_data()"> загрузить список </button>
+            <button class="load_data" onclick="update_data()"> Загрузить список </button>
             <button class="update_data" onclick=update_table(this)> Обновить данные </button>
             <span>Дата последнего обновления: <span class="update-time">
                     <?= $update ?>

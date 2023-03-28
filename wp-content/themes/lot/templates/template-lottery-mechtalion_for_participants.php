@@ -94,6 +94,7 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
     <td><input data-name="NUMBER37" value=""></td>
                         <td>
                             <button class="delete_data" onclick="delete_data(this)">x</button>
+                            <button class="all_numbers_is_fell_out" onclick="all_numbers_is_fell_out(this)">Выпали все числа</button>
                         </td>`;
             document.querySelector('.lottery-table.edit').appendChild(tr);
         }
@@ -226,12 +227,17 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
             $this.disabled = false;
         }
 
+        function all_numbers_is_fell_out($this){
+            const inputs = Array.from($this.closest('.table-row').querySelectorAll('input[data-name^="NUMBER"]'));
+            inputs.forEach(input => input.value = 0);
+        }
+
+        window.all_numbers_is_fell_out = all_numbers_is_fell_out;
 
         window.add_new = add_new;
         window.update_data = update_data;
         window.delete_data = delete_data;
         window.update_table = update_table;
-
     </script>
 
     <section class="lottery" style="position:fixed;top:0;width:100%;background:white">
@@ -290,13 +296,14 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                             <td><input data-name="NUMBER37" value="<?= $row['NUMBER37'] ?>"></td>
                             <td>
                                 <button class="delete_data" onclick="delete_data(this)">x</button>
+                                <button class="all_numbers_is_fell_out" onclick="all_numbers_is_fell_out(this)">Выпали все числа</button>
                             </td>
                         </tr>
                     <?php } ?>
                 </tbody>
             </table>
             <button class="add_new" onclick="add_new()"> + Добавить данные </button>
-            <button class="load_data" onclick="update_data()"> загрузить список </button>
+            <button class="load_data" onclick="update_data()"> Загрузить список </button>
             <button class="update_data" onclick=update_table(this)> Обновить данные </button>
             <span>Дата последнего обновления: <span class="update-time">
                     <?= $update ?>

@@ -1295,6 +1295,6 @@ p.update-complete{
   height:100vh;position:fixed;top:0;left:0;width:350px;background:gray;padding:20px;z-index:10000;
 }
 .tech-lottery-table.hide{
-  width:100px;
+  width:50px;
   overflow:hidden;
 }

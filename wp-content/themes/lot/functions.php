@@ -198,6 +198,13 @@ function register_post_types()
 	]);
 }
 
+function filter_numbers(array $range, array $numbers)
+{
+	return array_filter($range, function ($num) use ($numbers) {
+		return !in_array($num, $numbers);
+	});
+}
+
 function prepare_table_values()
 {
 	return array('VALUE_YES_NOW' => 0, 'VALUE_NO_NOW' => 0, 'VALUE_YES_MAX' => 0, 'VALUE_NO_MAX' => 0);
@@ -268,18 +275,21 @@ function get_mechtalion_for_participants()
 
 	$array_res = array();
 
-	for($i=1;$i<=80;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 80; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
+	// тут нужны невыпавшие числа.
+	$numbers_prev = array();
 
-	$numbers_prev = array(); 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15, $row->NUMBER16, $row->NUMBER17, $row->NUMBER18, $row->NUMBER19, $row->NUMBER20, $row->NUMBER21, $row->NUMBER22, $row->NUMBER23, $row->NUMBER24, $row->NUMBER25, $row->NUMBER26, $row->NUMBER27, $row->NUMBER28, $row->NUMBER29, $row->NUMBER30, $row->NUMBER31, $row->NUMBER32, $row->NUMBER33, $row->NUMBER34, $row->NUMBER35, $row->NUMBER36, $row->NUMBER37);
-		for($i=1;$i<=80;$i++){
+		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15, $row->NUMBER16, $row->NUMBER17, $row->NUMBER18, $row->NUMBER19, $row->NUMBER20, $row->NUMBER21, $row->NUMBER22, $row->NUMBER23, $row->NUMBER24, $row->NUMBER25, $row->NUMBER26, $row->NUMBER27, $row->NUMBER28, $row->NUMBER29, $row->NUMBER30, $row->NUMBER31, $row->NUMBER32, $row->NUMBER33, $row->NUMBER34, $row->NUMBER35, $row->NUMBER36, $row->NUMBER37);
+		$numbers = filter_numbers(range(1, 80), $array);
+
+		for ($i = 1; $i <= 80; $i++) {
 			// выпадет номер $i
-			calculate_case(function($nums) use($i){
-				return in_array($i,$nums);
-			},$numbers,$numbers_prev,$array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 
 		}
 		$numbers_prev = $numbers;
@@ -307,7 +317,6 @@ function insert_from_table_forsaj_75_for_participants()
 		wp_die();
 
 	$wpdb->query('DELETE FROM `wp_lottery_forsaj_75_for_participants`');
-	var_dump($rows);
 	foreach ($rows as $item) {
 		$sql_request_about_insert = "INSERT INTO `wp_lottery_forsaj_75_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ")";
 		$wpdb->query($sql_request_about_insert);
@@ -324,21 +333,23 @@ function get_forsaj_75_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_forsaj_75_for_participants`');
-	
+
 	$array_res = array();
 
-	for($i=1;$i<=75;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 75; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	$numbers_prev = array(); 
+	$numbers_prev = array();
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3);
-		for($i=1;$i<=75;$i++){
-			// Выпадет номер 1
-			calculate_case(function ($nums) use($i) {
+		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3);
+		$numbers = filter_numbers(range(1, 75), $array);
+
+		for ($i = 1; $i <= 75; $i++) {
+			// Выпадет номер $i
+			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
 		$numbers_prev = $numbers;
@@ -348,13 +359,13 @@ function get_forsaj_75_for_participants()
 		$wpdb->query("UPDATE `wp_lottery_results` SET VALUE_YES=" . $res['VALUE_YES_MAX'] . ", VALUE_NO=" . $res['VALUE_NO_MAX'] . ", VALUE_YES_NOW=" . $res['VALUE_YES_NOW'] . ", VALUE_NO_NOW=" . $res['VALUE_NO_NOW'] . " where LOTO_TYPE='forsaj_75_for_participants' and VALUE_ID='" . $key . "'");
 	}
 
-	echo json_encode(array("results" => $array_res, "update" => date('Y:m:d H:i:s'),"aaa"=>"bbb"));
+	echo json_encode(array("results" => $array_res, "update" => date('Y:m:d H:i:s'), "aaa" => "bbb"));
 	wp_die();
 }
 
- 
 
-add_action('wp_ajax_insert_pyataya_skorost_for_participants','insert_from_table_pyataya_skorost_for_participants');
+
+add_action('wp_ajax_insert_pyataya_skorost_for_participants', 'insert_from_table_pyataya_skorost_for_participants');
 add_action('wp_ajax_nopriv_insert_pyataya_skorost_for_participants', 'insert_from_table_pyataya_skorost_for_participants');
 
 
@@ -370,7 +381,7 @@ function insert_from_table_pyataya_skorost_for_participants()
 	$wpdb->query('DELETE FROM `wp_lottery_pyataya_skorost_for_participants`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_pyataya_skorost_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_pyataya_skorost_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -378,37 +389,41 @@ function insert_from_table_pyataya_skorost_for_participants()
 }
 
 
-add_action('wp_ajax_get_pyataya_skorost_for_participants','get_pyataya_skorost_for_participants');
-add_action('wp_ajax_nopriv_get_pyataya_skorost_for_participants','get_pyataya_skorost_for_participants');
+add_action('wp_ajax_get_pyataya_skorost_for_participants', 'get_pyataya_skorost_for_participants');
+add_action('wp_ajax_nopriv_get_pyataya_skorost_for_participants', 'get_pyataya_skorost_for_participants');
 
 function get_pyataya_skorost_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_pyataya_skorost_for_participants`');
-	
+
 	$array_res = array();
-	
-	for($i=1;$i<=36;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+
+	for ($i = 1; $i <= 36; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	for($i=1;$i<=4;$i++){
-		$array_res['DOP_NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 4; $i++) {
+		$array_res['DOP_NUM_' . $i] = prepare_table_values();
 	}
 
 
 	$numbers_prev = array();
 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6);
-		
-		for($i=1;$i<=36;$i++){
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6);
+
+		for ($i = 1; $i <= 36; $i++) {
 			//Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i,$nums); },$numbers,$numbers_prev,$array_res['NUM_'.$i]);	
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
-		for($i=1;$i<=4;$i++){
+		for ($i = 1; $i <= 4; $i++) {
 			// Бонусный (Дополнительный) номер $i
-			calculate_case(function($nums) use($i) {return end($nums) == $i;},$numbers,$numbers_prev,$array_res['DOP_NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return end($nums) == $i;
+			}, $numbers, $numbers_prev, $array_res['DOP_NUM_' . $i]);
 		}
 		$numbers_prev = $numbers;
 	}
@@ -457,19 +472,19 @@ function get_5_37_for_participants()
 
 	$array_res = array();
 
-	for($i=1;$i<=37;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 37; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	$numbers_prev = array(); 
+	$numbers_prev = array();
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
 
-		for($i=1;$i<=37;$i++){
+		for ($i = 1; $i <= 37; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 		$numbers_prev = $numbers;
 	}
@@ -513,22 +528,23 @@ function get_3_3_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_3_3_for_participants`');
-	
+
 	$array_res = array();
 
-	for($i=1;$i<=30;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 30; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
+	$numbers_prev = array();
 
-	$numbers_prev = array(); 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15);
+		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15);
+		$numbers = filter_numbers(range(1, 30), $array);
 
-		for($i=1;$i<=30;$i++){
+		for ($i = 1; $i <= 30; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
 		$numbers_prev = $numbers;
@@ -542,9 +558,9 @@ function get_3_3_for_participants()
 	wp_die();
 }
 
- 
 
-add_action('wp_ajax_insert_velikolepnaya_8_for_participants','insert_from_table_velikolepnaya_8_for_participants');
+
+add_action('wp_ajax_insert_velikolepnaya_8_for_participants', 'insert_from_table_velikolepnaya_8_for_participants');
 add_action('wp_ajax_nopriv_insert_velikolepnaya_8_for_participants', 'insert_from_table_velikolepnaya_8_for_participants');
 
 
@@ -560,7 +576,7 @@ function insert_from_table_velikolepnaya_8_for_participants()
 	$wpdb->query('DELETE FROM `wp_lottery_velikolepnaya_8_for_participants`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_velikolepnaya_8_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5]. ','.$item->numbers[6]. ','.$item->numbers[7] .','.$item->numbers[8]. ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_velikolepnaya_8_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -568,37 +584,41 @@ function insert_from_table_velikolepnaya_8_for_participants()
 }
 
 
-add_action('wp_ajax_get_velikolepnaya_8_for_participants','get_velikolepnaya_8_for_participants');
-add_action('wp_ajax_nopriv_get_velikolepnaya_8_for_participants','get_velikolepnaya_8_for_participants');
+add_action('wp_ajax_get_velikolepnaya_8_for_participants', 'get_velikolepnaya_8_for_participants');
+add_action('wp_ajax_nopriv_get_velikolepnaya_8_for_participants', 'get_velikolepnaya_8_for_participants');
 
 function get_velikolepnaya_8_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_velikolepnaya_8_for_participants`');
 	$array_res = array();
-	
-	for($i=1;$i<=20;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+
+	for ($i = 1; $i <= 20; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	for($i=1;$i<=4;$i++){
-		$array_res['DOP_NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 4; $i++) {
+		$array_res['DOP_NUM_' . $i] = prepare_table_values();
 	}
 
-	
+
 	$numbers_prev = array();
 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6,$row->NUMBER7,$row->NUMBER8,$row->NUMBER9);
-		
-		for($i=1;$i<=20;$i++){
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9);
+
+		for ($i = 1; $i <= 20; $i++) {
 			// Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i,$nums); },$numbers,$numbers_prev,$array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
-		
-		for($i=1;$i<=4;$i++){
+
+		for ($i = 1; $i <= 4; $i++) {
 			// Бонусный (Дополнительный) номер $i
-			calculate_case(function($nums) use($i) {return end($nums) == $i; },$numbers,$numbers_prev,$array_res['DOP_NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return end($nums) == $i;
+			}, $numbers, $numbers_prev, $array_res['DOP_NUM_' . $i]);
 		}
 
 		$numbers_prev = $numbers;
@@ -642,33 +662,33 @@ function get_lavina_prizov_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_lavina_prizov_for_participants`');
-	
-	for($i=1;$i<=20;$i++){
-		$array_res['FIELD_1_NUM_'.$i] = prepare_table_values();
-		$array_res['FIELD_2_NUM_'.$i] = prepare_table_values();
+
+	for ($i = 1; $i <= 20; $i++) {
+		$array_res['FIELD_1_NUM_' . $i] = prepare_table_values();
+		$array_res['FIELD_2_NUM_' . $i] = prepare_table_values();
 	}
 
 	$array_res = array();
 
-	$numbers_prev = array(); 
+	$numbers_prev = array();
 	$numbers_2_prev = array();
 
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4);
 		$numbers_2 = array($row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
 
-		for($i=1;$i<=20;$i++){
+		for ($i = 1; $i <= 20; $i++) {
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
 			}, $numbers, $numbers_prev, $array_res["FIELD_1_NUM_$i"]);
-				
+
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
 			}, $numbers_2, $numbers_2_prev, $array_res["FIELD_2_NUM_$i"]);
 		}
-		
+
 		$numbers_2_prev = $numbers_2;
 		$numbers_prev = $numbers;
 	}
@@ -712,20 +732,22 @@ function get_6_45_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_6_45_for_participants`');
-	
+
 	$array_res = array();
-	for($i=1;$i<=45;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 45; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	$numbers_prev = array(); 
-	
+	$numbers_prev = array();
+
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6);
 
-		for($i=1;$i<=45;$i++){
+		for ($i = 1; $i <= 45; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) { return in_array($i, $nums); }, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 		$numbers_prev = $numbers;
 	}
@@ -754,7 +776,7 @@ function insert_from_table_5_36_for_participants()
 	$wpdb->query('DELETE FROM `wp_lottery_5_36_for_participants`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_5_36_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] .")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_5_36_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -771,31 +793,31 @@ function get_5_36_for_participants()
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_5_36_for_participants`');
 	$array_res = array();
 
-	for($i=1;$i<=36;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 36; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	for($i=1;$i<=4;$i++){
-		$array_res['DOP_NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 4; $i++) {
+		$array_res['DOP_NUM_' . $i] = prepare_table_values();
 	}
 
-	$numbers_prev = array(); 
+	$numbers_prev = array();
 	$special_prev = 0;
 
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
 		$special = $row->NUMBER6;
 
-		for($i=1;$i<=36;$i++){
+		for ($i = 1; $i <= 36; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
 			}, $numbers, $numbers_prev, $array_res["NUM_$i"]);
 		}
 
-		for($i=1;$i<=4;$i++){
+		for ($i = 1; $i <= 4; $i++) {
 			// выпадет дополнительный номер $i
-			calculate_case(function ($special) use($i) {
+			calculate_case(function ($special) use ($i) {
 				return $special == $i;
 			}, $special, $special_prev, $array_res["DOP_NUM_$i"]);
 		}
@@ -812,9 +834,9 @@ function get_5_36_for_participants()
 	wp_die();
 }
 
- 
 
-add_action('wp_ajax_insert_4_20_for_participants','insert_from_table_4_20_for_participants');
+
+add_action('wp_ajax_insert_4_20_for_participants', 'insert_from_table_4_20_for_participants');
 add_action('wp_ajax_nopriv_insert_4_20_for_participants', 'insert_from_table_4_20_for_participants');
 
 
@@ -830,7 +852,7 @@ function insert_from_table_4_20_for_participants()
 	$wpdb->query('DELETE FROM `wp_lottery_4_20_for_participants`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_4_20_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3] . ','.$item->numbers[4] .','.$item->numbers[5] . ','.$item->numbers[6] . ','.$item->numbers[7] .")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_4_20_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -838,34 +860,38 @@ function insert_from_table_4_20_for_participants()
 }
 
 
-add_action('wp_ajax_get_4_20_for_participants','get_4_20_for_participants');
-add_action('wp_ajax_nopriv_get_4_20_for_participants','get_4_20_for_participants');
+add_action('wp_ajax_get_4_20_for_participants', 'get_4_20_for_participants');
+add_action('wp_ajax_nopriv_get_4_20_for_participants', 'get_4_20_for_participants');
 
 function get_4_20_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_4_20_for_participants`');
-	
+
 	$array_res = array();
-	
-	for($i=1;$i<=20;$i++){
-		$array_res['FIELD_1_NUM_'.$i] = prepare_table_values();
-		$array_res['FIELD_2_NUM_'.$i] = prepare_table_values();
+
+	for ($i = 1; $i <= 20; $i++) {
+		$array_res['FIELD_1_NUM_' . $i] = prepare_table_values();
+		$array_res['FIELD_2_NUM_' . $i] = prepare_table_values();
 	}
 
 	$numbers_prev = array();
 	$numbers_2_prev = array();
 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4);
-		$numbers_2 = array($row->NUMBER5,$row->NUMBER6,$row->NUMBER7,$row->NUMBER8);
-		
-		for($i=1;$i<=20;$i++){
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4);
+		$numbers_2 = array($row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
+
+		for ($i = 1; $i <= 20; $i++) {
 			// Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i, $nums); },$numbers,$numbers_prev,$array_res["FIELD_1_NUM_$i"]);
-		
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res["FIELD_1_NUM_$i"]);
+
 			//ПОЛЕ 2: Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i, $nums); },$numbers_2,$numbers_2_prev,$array_res["FIELD_2_NUM_$i"]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers_2, $numbers_2_prev, $array_res["FIELD_2_NUM_$i"]);
 		}
 
 		$numbers_2_prev = $numbers_2;
@@ -879,8 +905,8 @@ function get_4_20_for_participants()
 	echo json_encode(array("results" => $array_res, "update" => date('Y:m:d H:i:s')));
 	wp_die();
 }
- 
-add_action('wp_ajax_insert_rapido_for_participants','insert_from_table_rapido_for_participants');
+
+add_action('wp_ajax_insert_rapido_for_participants', 'insert_from_table_rapido_for_participants');
 add_action('wp_ajax_nopriv_insert_rapido_for_participants', 'insert_from_table_rapido_for_participants');
 
 
@@ -896,7 +922,7 @@ function insert_from_table_rapido_for_participants()
 	$wpdb->query('DELETE FROM `wp_lottery_rapido_for_participants`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_rapido_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5]. ','.$item->numbers[6]. ','.$item->numbers[7] . ','.$item->numbers[8] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_rapido_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -904,40 +930,44 @@ function insert_from_table_rapido_for_participants()
 }
 
 
-add_action('wp_ajax_get_rapido_for_participants','get_rapido_for_participants');
-add_action('wp_ajax_nopriv_get_rapido_for_participants','get_rapido_for_participants');
+add_action('wp_ajax_get_rapido_for_participants', 'get_rapido_for_participants');
+add_action('wp_ajax_nopriv_get_rapido_for_participants', 'get_rapido_for_participants');
 
 function get_rapido_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_rapido_for_participants`');
-	
+
 	$array_res = array();
 
-	for($i=1;$i<=20;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 20; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	for($i=1;$i<=4;$i++){
-		$array_res['DOP_NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 4; $i++) {
+		$array_res['DOP_NUM_' . $i] = prepare_table_values();
 	}
 
-	
+
 	$numbers_prev = array();
 	$special_prev = 0;
 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6,$row->NUMBER7,$row->NUMBER8);
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
 		$special = $row->NUMBER9;
 
-		for($i=1;$i<=20;$i++){
+		for ($i = 1; $i <= 20; $i++) {
 			// Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i,$nums); },$numbers,$numbers_prev,$array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
-		for($i=1;$i<=4;$i++){
+		for ($i = 1; $i <= 4; $i++) {
 			// Бонусный (Дополнительный) номер $i
-			calculate_case(function($special) use ($i) {return $special == $i;},$special,$special_prev,$array_res['DOP_NUM_'.$i]);
+			calculate_case(function ($special) use ($i) {
+				return $special == $i;
+			}, $special, $special_prev, $array_res['DOP_NUM_' . $i]);
 		}
 
 		$special_prev = $special;
@@ -951,10 +981,10 @@ function get_rapido_for_participants()
 	echo json_encode(array("results" => $array_res, "update" => date('Y:m:d H:i:s')));
 	wp_die();
 }
- 
- 
 
-add_action('wp_ajax_insert_rapido_2_for_participants','insert_from_table_rapido_2_for_participants');
+
+
+add_action('wp_ajax_insert_rapido_2_for_participants', 'insert_from_table_rapido_2_for_participants');
 add_action('wp_ajax_nopriv_insert_rapido_2_for_participants', 'insert_from_table_rapido_2_for_participants');
 
 
@@ -970,7 +1000,7 @@ function insert_from_table_rapido_2_for_participants()
 	$wpdb->query('DELETE FROM `wp_lottery_rapido_2_for_participants`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_rapido_2_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5]. ','.$item->numbers[6]. ','.$item->numbers[7] . ','.$item->numbers[8] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_rapido_2_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -978,8 +1008,8 @@ function insert_from_table_rapido_2_for_participants()
 }
 
 
-add_action('wp_ajax_get_rapido_2_for_participants','get_rapido_2_for_participants');
-add_action('wp_ajax_nopriv_get_rapido_2_for_participants','get_rapido_2_for_participants');
+add_action('wp_ajax_get_rapido_2_for_participants', 'get_rapido_2_for_participants');
+add_action('wp_ajax_nopriv_get_rapido_2_for_participants', 'get_rapido_2_for_participants');
 
 function get_rapido_2_for_participants()
 {
@@ -1012,31 +1042,35 @@ function get_rapido_2_for_participants()
 		'DOP_NUM_4'
 	);
 	$array_res = array();
-	
-	for($i=1;$i<=20;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+
+	for ($i = 1; $i <= 20; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	for($i=1;$i<=4;$i++){
-		$array_res['DOP_NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 4; $i++) {
+		$array_res['DOP_NUM_' . $i] = prepare_table_values();
 	}
 
 	$numbers_prev = array();
 	$special_prev = 0;
 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6,$row->NUMBER7,$row->NUMBER8);
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
 		$special = $row->NUMBER9;
 
 
-		for($i=1;$i<=20;$i++){
+		for ($i = 1; $i <= 20; $i++) {
 			// Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i,$nums); },$numbers,$numbers_prev,$array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
-		for($i=1;$i<=4;$i++){
+		for ($i = 1; $i <= 4; $i++) {
 			// Бонусный (Дополнительный) номер $i
-			calculate_case(function($special) use($i) {return $special == $i;},$special,$special_prev,$array_res['DOP_NUM_'.$i]);
+			calculate_case(function ($special) use ($i) {
+				return $special == $i;
+			}, $special, $special_prev, $array_res['DOP_NUM_' . $i]);
 		}
 
 		$special_prev = $special;
@@ -1051,7 +1085,7 @@ function get_rapido_2_for_participants()
 	wp_die();
 }
 
-add_action('wp_ajax_insert_rapido_for_gamers','insert_from_table_rapido_for_gamers');
+add_action('wp_ajax_insert_rapido_for_gamers', 'insert_from_table_rapido_for_gamers');
 add_action('wp_ajax_nopriv_insert_rapido_for_gamers', 'insert_from_table_rapido_for_gamers');
 function insert_from_table_rapido_for_gamers()
 {
@@ -1065,7 +1099,7 @@ function insert_from_table_rapido_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_rapido_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_rapido_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5]. ','.$item->numbers[6]. ','.$item->numbers[7]. ','.$item->numbers[8] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_rapido_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -1073,8 +1107,8 @@ function insert_from_table_rapido_for_gamers()
 }
 
 
-add_action('wp_ajax_get_rapido_for_gamers','get_rapido_for_gamers');
-add_action('wp_ajax_nopriv_get_rapido_for_gamers','get_rapido_for_gamers');
+add_action('wp_ajax_get_rapido_for_gamers', 'get_rapido_for_gamers');
+add_action('wp_ajax_nopriv_get_rapido_for_gamers', 'get_rapido_for_gamers');
 
 function get_rapido_for_gamers()
 {
@@ -1175,186 +1209,408 @@ function get_rapido_for_gamers()
 	);
 
 	$array_res = array();
-	
+
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
 	$numbers_prev = array();
-	$special_prev = -1;
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6,$row->NUMBER7,$row->NUMBER8);
+	$special_prev = -1; foreach ($rows as $row) {
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
 		$special = $row->NUMBER9;
-		
-		for($i=1;$i<=20;$i++){
+
+		for ($i = 1; $i <= 20; $i++) {
 			// Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i,$nums); },$numbers,$numbers_prev,$array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
-		for($i=1;$i<=4;$i++){
+		for ($i = 1; $i <= 4; $i++) {
 			// Бонусный (Дополнительный) номер 1
-			calculate_case(function($special) use ($i) {return $special == $i; },$special,$special_prev, $array_res['DOP_NUM_'.$i]);
+			calculate_case(function ($special) use ($i) {
+				return $special == $i;
+			}, $special, $special_prev, $array_res['DOP_NUM_' . $i]);
 		}
 
 		// Бонусный (Дополнительный) номер Больше 2.5
-		calculate_case(function($special){return $special == 2.5;},$special,$special_prev,$array_res['DOP_NUM_GT_2.5']);
+		calculate_case(function ($special) {
+			return $special == 2.5;
+		}, $special, $special_prev, $array_res['DOP_NUM_GT_2.5']);
 
 		// Бонусный (Дополнительный) номер Чет
-		calculate_case(function($special){return $special % 2 ==0 ;},$special,$special_prev,$array_res['DOP_NUM_EVEN']);
+		calculate_case(function ($special) {
+			return $special % 2 == 0;
+		}, $special, $special_prev, $array_res['DOP_NUM_EVEN']);
 
 		// Сумма всех выпавших номеров Больше 77.5
-		calculate_case(function($nums){return array_sum($nums) > 77.5;},$numbers,$numbers_prev,$array_res['SUM_GT_77.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 77.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_77.5']);
 
 		// Сумма всех выпавших номеров Больше 81.5
-		calculate_case(function($nums){return array_sum($nums) > 81.5;},$numbers,$numbers_prev,$array_res['SUM_GT_81.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 81.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_81.5']);
 
 		// Сумма всех выпавших номеров Больше 84.5
-		calculate_case(function($nums){return array_sum($nums) > 84.5;},$numbers,$numbers_prev,$array_res['SUM_GT_84.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 84.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_84.5']);
 
 		// Сумма всех выпавших номеров Больше 88.5
-		calculate_case(function($nums){return array_sum($nums) > 88.5;},$numbers,$numbers_prev,$array_res['SUM_GT_88.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 88.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_88.5']);
 
 		// Сумма всех выпавших номеров Больше 91.5
-		calculate_case(function($nums){return array_sum($nums) > 91.5;},$numbers,$numbers_prev,$array_res['SUM_GT_91.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 91.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_91.5']);
 
 		// Сумма всех выпавших номеров Чет
-		calculate_case(function($nums){ return (array_sum($nums) %2) == 0;},$numbers,$numbers_prev,$array_res['SUM_EVEN']);
+		calculate_case(function ($nums) {
+			return (array_sum($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 35.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 35.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_35.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 35.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_35.5']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 39.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 39.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_39.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 39.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_39.5']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 43.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 43.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_43.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 43.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_43.5']);
 
 		// Сумма всех выпавших четных номеров Больше 38.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 ==0;}); return array_sum($filtered) > 38.5;},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_38.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 38.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_38.5']);
 
 		// Сумма всех выпавших четных номеров Больше 42.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 ==0;}); return array_sum($filtered) > 42.5;},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_42.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 42.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_42.5']);
 
 		// Сумма всех выпавших четных номеров Больше 46.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 ==0;}); return array_sum($filtered) > 46.5;},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_46.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 46.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_46.5']);
 
 		// Сумма всех выпавших номеров от 1 до 7 Больше 11.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 1 && $num <=7;}); return array_sum($filtered_list) > 11.5;},$numbers,$numbers_prev,$array_res['SUM_1_7_GT_11.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 7;
+			});
+			return array_sum($filtered_list) > 11.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_1_7_GT_11.5']);
 
 		// Сумма всех выпавших номеров от 1 до 10 Больше 21.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 1 && $num <=10;}); return array_sum($filtered_list) > 21.5;},$numbers,$numbers_prev,$array_res['SUM_1_10_GT_21.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			});
+			return array_sum($filtered_list) > 21.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_1_10_GT_21.5']);
 
 		// Сумма всех выпавших номеров от 8 до 14 Больше 31.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 8 && $num <=14;}); return array_sum($filtered_list) > 31.5;},$numbers,$numbers_prev,$array_res['SUM_8_14_GT_31.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 8 && $num <= 14;
+			});
+			return array_sum($filtered_list) > 31.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_8_14_GT_31.5']);
 
 		// Сумма всех выпавших номеров от 11 до 20 Больше 62.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 11 && $num <=20;}); return array_sum($filtered_list) > 62.5;},$numbers,$numbers_prev,$array_res['SUM_11_20_GT_62.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 11 && $num <= 20;
+			});
+			return array_sum($filtered_list) > 62.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_11_20_GT_62.5']);
 
 		// Сумма всех выпавших номеров от 15 до 20 Больше 37.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 15 && $num <=20;}); return array_sum($filtered_list) > 37.5;},$numbers,$numbers_prev,$array_res['SUM_15_20_GT_37.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 15 && $num <= 20;
+			});
+			return array_sum($filtered_list) > 37.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_15_20_GT_37.5']);
 
 		// Наименьший выпавший номер Больше 2.5
-		calculate_case(function($nums){return min($nums) > 2.5;},$numbers,$numbers_prev,$array_res['MIN_GT_2.5']);
+		calculate_case(function ($nums) {
+			return min($nums) > 2.5;
+		}, $numbers, $numbers_prev, $array_res['MIN_GT_2.5']);
 
 		// Наибольший выпавший номер Больше 18.5
-		calculate_case(function($nums){return max($nums) > 18.5;},$numbers,$numbers_prev,$array_res['MAX_GT_18.5']);
+		calculate_case(function ($nums) {
+			return max($nums) > 18.5;
+		}, $numbers, $numbers_prev, $array_res['MAX_GT_18.5']);
 
 		// Наименьший выпавший номер Чет
-		calculate_case(function($nums){ return (min($nums) %2) ==0; },$numbers,$numbers_prev,$array_res['MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
 
 		// Наибольший выпавший номер Чет
-		calculate_case(function($nums){ return max($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return max($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Больше 20.5
-		calculate_case(function($nums){return (max($nums) + min($nums)) > 20.5;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_GT_20.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) > 20.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_GT_20.5']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) + min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_EVEN']);
 
 		// Разность наибольшего и наименьшего из выпавших номеров Больше 16.5
-		calculate_case(function($nums){return (max($nums) - min($nums)) > 16.5;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_GT_16.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) > 16.5;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_16.5']);
 
 		// Разность наибольшего и наименьшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) - min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_EVEN']);
 
-		for($i=0;$i<8;$i++){
+		for ($i = 0; $i < 8; $i++) {
 			// i-й номер больше 10.5
-			calculate_case(function($nums) use($i) { return $nums[$i] > 10.5 ; },$numbers,$numbers_prev,$array_res['NUM_'.($i+1).'_GT_10.5']);
-			
+			calculate_case(function ($nums) use ($i) {
+				return $nums[$i] > 10.5;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . ($i + 1) . '_GT_10.5']);
+
 			// i-й номер Чет
-			calculate_case(function($nums) use($i) {return $nums[$i] %2==0;},$numbers,$numbers_prev,$array_res['NUM_'.($i+1).'_EVEN']);
+			calculate_case(function ($nums) use ($i) {
+				return $nums[$i] % 2 == 0;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . ($i + 1) . '_EVEN']);
 		}
 
 		// Любой из выпавших номеров кратен 10
-		calculate_case(function($nums){$count = count($nums); for($i=0;$i<$count;$i++){if($nums[$i] % 10 == 0){ return true; }}return false;},$numbers,$numbers_prev,$array_res['ANY_DIV_10']);
+		calculate_case(function ($nums) {
+			$count = count($nums);
+			for ($i = 0; $i < $count; $i++) {
+				if ($nums[$i] % 10 == 0) {
+					return true;
+				}
+			}return false;
+		}, $numbers, $numbers_prev, $array_res['ANY_DIV_10']);
 
 		// Четных номеров выпадет больше, чем НЕчетных
-		calculate_case(function($nums){ $even = count(array_filter($nums,function($num){ return $num %2==0;})); $odd = count(array_filter($nums,function($num){ return $num%2!=0; })); return $even > $odd; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_GT_COUNT_ODD']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_GT_COUNT_ODD']);
 
 		// Сумма выпавших Четных номеров Больше, чем сумма выпавших НЕчетных номеров
-		calculate_case(function($nums) {$even = array_filter($nums,function($num) {return $num %2==0;}); $odd = array_filter($nums,function($num){return $num %2 != 0;}); return $even > $odd;},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_SUM_ODD']);
+		calculate_case(function ($nums) {
+			$even = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			$odd = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_SUM_ODD']);
 
 		// Количество выпавших НЕчетных номеров Меньше 4
-		calculate_case(function($nums){$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd < 4;},$numbers,$numbers_prev,$array_res['ODD_LT_4']);
+		calculate_case(function ($nums) {
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $odd < 4;
+		}, $numbers, $numbers_prev, $array_res['ODD_LT_4']);
 
 		// Количество выпавших НЕчетных номеров Ровно 4
-		calculate_case(function($nums){$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd == 4;},$numbers,$numbers_prev,$array_res['ODD_EQ_4']);
+		calculate_case(function ($nums) {
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $odd == 4;
+		}, $numbers, $numbers_prev, $array_res['ODD_EQ_4']);
 
 		// Количество выпавших НЕчетных номеров Больше 4
-		calculate_case(function($nums){$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd > 4;},$numbers,$numbers_prev,$array_res['ODD_GT_4']);
+		calculate_case(function ($nums) {
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $odd > 4;
+		}, $numbers, $numbers_prev, $array_res['ODD_GT_4']);
 
 		// Количество выпавших Четных номеров Меньше 4
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even < 4;},$numbers,$numbers_prev,$array_res['ODD_LT_4']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $even < 4;
+		}, $numbers, $numbers_prev, $array_res['ODD_LT_4']);
 
 		// Количество выпавших Четных номеров Ровно 4
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even == 4;},$numbers,$numbers_prev,$array_res['EVEN_EQ_4']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $even == 4;
+		}, $numbers, $numbers_prev, $array_res['EVEN_EQ_4']);
 
 		// Количество выпавших Четных номеров Больше 4
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even > 4;},$numbers,$numbers_prev,$array_res['EVEN_GT_4']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $even > 4;
+		}, $numbers, $numbers_prev, $array_res['EVEN_GT_4']);
 
 		// Количество выпавших номеров от 1 до 7 включительно Меньше 3
-		calculate_case(function($nums){ $filtered = count(array_filter($nums,function($num){ return $num >= 1 && $num <= 7;})); return $filtered < 3; },$numbers,$numbers_prev,$array_res['COUNT_1_7_LT_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 7;
+			}));
+			return $filtered < 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_7_LT_3']);
 
 		// Количество выпавших номеров от 1 до 7 включительно Ровно 3
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 1 && $num <= 7;})); return $filtered == 3;  },$numbers,$numbers_prev,$array_res['COUNT_1_7_EQ_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 7;
+			}));
+			return $filtered == 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_7_EQ_3']);
 
 		// Количество выпавших номеров от 1 до 7 включительно Больше 3
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 1 && $num <= 7;})); return $filtered > 3;  },$numbers,$numbers_prev,$array_res['COUNT_1_7_GT_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 7;
+			}));
+			return $filtered > 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_7_GT_3']);
 
 		// Количество выпавших номеров от 1 до 10 включительно Меньше 4
-		calculate_case(function($nums){ $filtered = count(array_filter($nums,function($num){ return $num >= 1 && $num <= 10;})); return $filtered < 4; },$numbers,$numbers_prev,$array_res['COUNT_1_10_LT_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			}));
+			return $filtered < 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_10_LT_4']);
 
 		// Количество выпавших номеров от 1 до 10 включительно Ровно 4
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 1 && $num <= 10;})); return $filtered == 4;  },$numbers,$numbers_prev,$array_res['COUNT_1_10_EQ_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			}));
+			return $filtered == 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_10_EQ_4']);
 
 		// Количество выпавших номеров от 1 до 10 включительно Больше 4
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 1 && $num <= 10;})); return $filtered > 4;  },$numbers,$numbers_prev,$array_res['COUNT_1_10_GT_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			}));
+			return $filtered > 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_10_GT_4']);
 
 		// Количество выпавших номеров от 8 до 14 включительно Меньше 3
-		calculate_case(function($nums){ $filtered = count(array_filter($nums,function($num){ return $num >= 8 && $num <= 14;})); return $filtered < 3; },$numbers,$numbers_prev,$array_res['COUNT_8_14_LT_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 8 && $num <= 14;
+			}));
+			return $filtered < 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_8_14_LT_3']);
 
 		// Количество выпавших номеров от 8 до 14 включительно Ровно 3
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 8 && $num <= 14;})); return $filtered == 3;  },$numbers,$numbers_prev,$array_res['COUNT_8_14_EQ_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 8 && $num <= 14;
+			}));
+			return $filtered == 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_8_14_EQ_3']);
 
 		// Количество выпавших номеров от 8 до 14 включительно Больше 3
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 8 && $num <= 14;})); return $filtered > 3;  },$numbers,$numbers_prev,$array_res['COUNT_8_14_GT_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 8 && $num <= 14;
+			}));
+			return $filtered > 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_8_14_GT_3']);
 
 		// Количество выпавших номеров от 11 до 20 включительно Меньше 4
-		calculate_case(function($nums){ $filtered = count(array_filter($nums,function($num){ return $num >= 11 && $num <= 20;})); return $filtered < 4; },$numbers,$numbers_prev,$array_res['COUNT_11_20_LT_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 11 && $num <= 20;
+			}));
+			return $filtered < 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_11_20_LT_4']);
 
 		// Количество выпавших номеров от 11 до 20 включительно Ровно 4
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 11 && $num <= 20;})); return $filtered == 4;  },$numbers,$numbers_prev,$array_res['COUNT_11_20_EQ_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 11 && $num <= 20;
+			}));
+			return $filtered == 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_11_20_EQ_4']);
 
 		// Количество выпавших номеров от 11 до 20 включительно Больше 4
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 11 && $num <= 20;})); return $filtered > 4;  },$numbers,$numbers_prev,$array_res['COUNT_11_20_GT_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 11 && $num <= 20;
+			}));
+			return $filtered > 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_11_20_GT_4']);
 
 		// Количество выпавших номеров от 15 до 20 включительно Меньше 2
-		calculate_case(function($nums){ $filtered = count(array_filter($nums,function($num){ return $num >= 15 && $num <= 20;})); return $filtered < 2; },$numbers,$numbers_prev,$array_res['COUNT_15_20_LT_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 15 && $num <= 20;
+			}));
+			return $filtered < 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_15_20_LT_2']);
 
 		// Количество выпавших номеров от 15 до 20 включительно Ровно 2
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 15 && $num <= 20;})); return $filtered == 2;  },$numbers,$numbers_prev,$array_res['COUNT_15_20_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 15 && $num <= 20;
+			}));
+			return $filtered == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_15_20_EQ_2']);
 
 		// Количество выпавших номеров от 15 до 20 включительно Больше 2
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 15 && $num <= 20;})); return $filtered > 2;  },$numbers,$numbers_prev,$array_res['COUNT_15_20_GT_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 15 && $num <= 20;
+			}));
+			return $filtered > 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_15_20_GT_2']);
 
 		$special_prev = $special;
 		$numbers_prev = $numbers;
@@ -1400,22 +1656,22 @@ function get_12_24_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_12_24_for_participants`');
-	
+
 	$array_res = array();
-	for($i=1;$i<=24;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 24; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	$numbers_prev = array(); 
-	
+	$numbers_prev = array();
+
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12);
-        
-		for($i=1;$i<=24;$i++){
+
+		for ($i = 1; $i <= 24; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
 		$numbers_prev = $numbers;
@@ -1429,9 +1685,9 @@ function get_12_24_for_participants()
 	wp_die();
 }
 
- 
 
-add_action('wp_ajax_insert_duel_for_participants','insert_from_table_duel_for_participants');
+
+add_action('wp_ajax_insert_duel_for_participants', 'insert_from_table_duel_for_participants');
 add_action('wp_ajax_nopriv_insert_duel_for_participants', 'insert_from_table_duel_for_participants');
 
 
@@ -1447,7 +1703,7 @@ function insert_from_table_duel_for_participants()
 	$wpdb->query('DELETE FROM `wp_lottery_duel_for_participants`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_duel_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4) VALUES(" . $item->number . ','.$item->numbers[0]. ','.$item->numbers[1] . ','.$item->numbers[2]. ','.$item->numbers[3] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_duel_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -1455,32 +1711,36 @@ function insert_from_table_duel_for_participants()
 }
 
 
-add_action('wp_ajax_get_duel_for_participants','get_duel_for_participants');
-add_action('wp_ajax_nopriv_get_duel_for_participants','get_duel_for_participants');
+add_action('wp_ajax_get_duel_for_participants', 'get_duel_for_participants');
+add_action('wp_ajax_nopriv_get_duel_for_participants', 'get_duel_for_participants');
 
 function get_duel_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_duel_for_participants`');
 	$array_res = array();
-	for($i=1;$i<=26;$i++){
-		$array_res['FIELD_1_NUM_'.$i] = prepare_table_values();
-		$array_res['FIELD_2_NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 26; $i++) {
+		$array_res['FIELD_1_NUM_' . $i] = prepare_table_values();
+		$array_res['FIELD_2_NUM_' . $i] = prepare_table_values();
 	}
 
 	$numbers_prev = array();
 	$numbers_2_prev = array();
 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2);
-		$numbers_2 = array($row->NUMBER3,$row->NUMBER4);
+		$numbers = array($row->NUMBER1, $row->NUMBER2);
+		$numbers_2 = array($row->NUMBER3, $row->NUMBER4);
 
-		for($i = 1;$i<=26;$i++){
+		for ($i = 1; $i <= 26; $i++) {
 			// Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i,$nums); },$numbers,$numbers_prev,$array_res["FIELD_1_NUM_".$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res["FIELD_1_NUM_" . $i]);
 
 			// Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i,$nums); },$numbers_2,$numbers_2_prev,$array_res["FIELD_2_NUM_".$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers_2, $numbers_2_prev, $array_res["FIELD_2_NUM_" . $i]);
 		}
 
 		$numbers_2_prev = $numbers_2;
@@ -1527,19 +1787,19 @@ function get_top3_for_participants()
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_top3_for_participants`');
 	$array_res = array();
 
-	for($i=0;$i<10;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 0; $i < 10; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
-	$numbers_prev = array(); 
+	$numbers_prev = array();
 
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3);
-        
-		for($i=0;$i<10;$i++){
+
+		for ($i = 0; $i < 10; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
 		$numbers_prev = $numbers;
@@ -1553,9 +1813,9 @@ function get_top3_for_participants()
 	wp_die();
 }
 
- 
 
-add_action('wp_ajax_insert_keno_for_participants','insert_from_table_keno_for_participants');
+
+add_action('wp_ajax_insert_keno_for_participants', 'insert_from_table_keno_for_participants');
 add_action('wp_ajax_nopriv_insert_keno_for_participants', 'insert_from_table_keno_for_participants');
 
 
@@ -1571,15 +1831,15 @@ function insert_from_table_keno_for_participants()
 	$wpdb->query('DELETE FROM `wp_lottery_keno_for_participants`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_keno_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5]. ','.$item->numbers[6]. ','.$item->numbers[7]. ','.$item->numbers[8]. ','.$item->numbers[9]. ','.$item->numbers[10]. ','.$item->numbers[11]. ','.$item->numbers[12]. ','.$item->numbers[13]. ','.$item->numbers[14]. ','.$item->numbers[15]. ','.$item->numbers[16]. ','.$item->numbers[17]. ','.$item->numbers[18]. ','.$item->numbers[19]. ','.$item->numbers[20]. ','.$item->numbers[21] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_keno_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19] . ',' . $item->numbers[20] . ',' . $item->numbers[21] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
 	wp_die();
 }
 
-add_action('wp_ajax_get_keno_for_participants','get_keno_for_participants');
-add_action('wp_ajax_nopriv_get_keno_for_participants','get_keno_for_participants');
+add_action('wp_ajax_get_keno_for_participants', 'get_keno_for_participants');
+add_action('wp_ajax_nopriv_get_keno_for_participants', 'get_keno_for_participants');
 
 function get_keno_for_participants()
 {
@@ -1587,13 +1847,13 @@ function get_keno_for_participants()
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_keno_for_participants`');
 
 	$array_res = array();
-	
-	for($i=1;$i<=80;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+
+	for ($i = 1; $i <= 80; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	for($i=1;$i<=10;$i++){
-		$array_res['COLUMN_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 10; $i++) {
+		$array_res['COLUMN_' . $i] = prepare_table_values();
 	}
 
 	$array_res['COUNT_EVEN_GT_COUNT_ODD'] = prepare_table_values();
@@ -1603,25 +1863,51 @@ function get_keno_for_participants()
 	$numbers_prev = array();
 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6,$row->NUMBER7,$row->NUMBER8,$row->NUMBER9,$row->NUMBER10,$row->NUMBER11,$row->NUMBER12,$row->NUMBER13,$row->NUMBER14,$row->NUMBER15,$row->NUMBER16,$row->NUMBER17,$row->NUMBER18,$row->NUMBER19,$row->NUMBER20,$row->NUMBER21,$row->NUMBER22);
-		for($i=1;$i<=80;$i++){
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15, $row->NUMBER16, $row->NUMBER17, $row->NUMBER18, $row->NUMBER19, $row->NUMBER20, $row->NUMBER21);
+		for ($i = 1; $i <= 80; $i++) {
 			// Выпадет номер 1
-			calculate_case(function($nums) use($i) { return in_array($i,$nums); },$numbers,$numbers_prev,$array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
-		for($i=1;$i<=10;$i++){
+		for ($i = 1; $i <= 10; $i++) {
 			// Столбец $i
-			calculate_case(function($nums) use($i) { return end($nums) == $i; },$numbers,$numbers_prev,$array_res['COLUMN_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return end($nums) == $i;
+			}, $numbers, $numbers_prev, $array_res['COLUMN_' . $i]);
 		}
-		
+
 		// Выпадет Больше Четных чисел
-		calculate_case(function($nums){ $even = count(array_filter($nums,function($num){ return $num %2==0;})); $odd = count(array_filter($nums,function($num){ return $num%2!=0; })); return $even > $odd; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_GT_COUNT_ODD']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_GT_COUNT_ODD']);
 
 		// Выпадет Поровну Четных и НЕчетных чисел
-		calculate_case(function($nums) { return count(array_filter($nums,function($num){ return $num %2 == 0; })) == count(array_filter($nums,function($num) { return $num %2 != 0;})); },$numbers,$numbers_prev,$array_res['COUNT_EVEN_EQ_COUNT_ODD']);
+		calculate_case(function ($nums) {
+			return count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			})) == count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_EQ_COUNT_ODD']);
 
 		// Выпадет Больше НЕчетных чисел
-		calculate_case(function($nums){ $even = count(array_filter($nums,function($num){ return $num %2==0;})); $odd = count(array_filter($nums,function($num){ return $num%2!=0; })); return $even < $odd; },$numbers,$numbers_prev,$array_res['COUNT_ODD_GT_COUNT_EVEN']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $even < $odd;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_GT_COUNT_EVEN']);
 
 		$numbers_prev = $numbers;
 	}
@@ -1665,22 +1951,24 @@ function get_6_36_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_6_36_for_participants`');
-	
+
 	$array_res = array();
-	for($i=1;$i<=36;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 36; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	$numbers_prev = array(); 
-	
+	$numbers_prev = array();
+
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6);
-		
-		for($i=1;$i<=36;$i++){
+
+		for ($i = 1; $i <= 36; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i){ return in_array($i, $nums); }, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
-		
+
 		$numbers_prev = $numbers;
 	}
 
@@ -1725,18 +2013,20 @@ function get_rocketbingo_for_participants()
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_rocketbingo_for_participants`');
 	$array_res = array();
 
-	for($i=1;$i<=75;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 75; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	$numbers_prev = array(); 
-	
+	$numbers_prev = array();
+
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15, $row->NUMBER16, $row->NUMBER17, $row->NUMBER18, $row->NUMBER19, $row->NUMBER20, $row->NUMBER21, $row->NUMBER22, $row->NUMBER23, $row->NUMBER24, $row->NUMBER25, $row->NUMBER26, $row->NUMBER27, $row->NUMBER28, $row->NUMBER29, $row->NUMBER30, $row->NUMBER31, $row->NUMBER32, $row->NUMBER33, $row->NUMBER34, $row->NUMBER35);
 
-		for($i=1;$i<=75;$i++){
+		for ($i = 1; $i <= 75; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) { return in_array($i, $nums); }, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
 		$numbers_prev = $numbers;
@@ -1781,22 +2071,24 @@ function get_7_49_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_7_49_for_participants`');
-	
+
 	$array_res = array();
 
-	for($i=1;$i<=49;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 49; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	$numbers_prev = array(); 
+	$numbers_prev = array();
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7);
 
-		for($i=1;$i<=49;$i++){
+		for ($i = 1; $i <= 49; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i){ return in_array($i, $nums); }, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
-		
+
 		$numbers_prev = $numbers;
 	}
 
@@ -1839,21 +2131,24 @@ function get_bingo_75_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_bingo_75_for_participants`');
-	
+
 	$array_res = array();
 
-	for($i=1;$i<=75;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 75; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	$numbers_prev = array(); 
-	
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3);
+	$numbers_prev = array();
 
-		for($i=1;$i<=75;$i++){
+	foreach ($rows as $row) {
+		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3);
+		$numbers = filter_numbers(range(1, 75), $array);
+
+		for ($i = 1; $i <= 75; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) { return in_array($i, $nums); }, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
 		$numbers_prev = $numbers;
@@ -1898,20 +2193,22 @@ function get_rus_loto_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_rus_loto_for_participants`');
-	
+
 	$array_res = array();
-	for($i=1;$i<=90;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 90; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	$numbers_prev = array(); 
-	
+	$numbers_prev = array();
+
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
 
-		for($i=1;$i<=90;$i++){
+		for ($i = 1; $i <= 90; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) { return in_array($i, $nums); }, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
 		$numbers_prev = $numbers;
@@ -1956,21 +2253,24 @@ function get_loto_express_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_loto_express_for_participants`');
-	
+
 	$array_res = array();
 
-	for($i=1;$i<=90;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 90; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
-	
-	$numbers_prev = array(); 
-	
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4);
 
-		for($i=1;$i<=90;$i++){
+	$numbers_prev = array();
+
+	foreach ($rows as $row) {
+		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4);
+		$numbers = filter_numbers(range(1, 90), $array);
+
+		for ($i = 1; $i <= 90; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) { return in_array($i, $nums); }, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
 		$numbers_prev = $numbers;
@@ -1984,7 +2284,7 @@ function get_loto_express_for_participants()
 	wp_die();
 }
 
-add_action('wp_ajax_insert_bolshoe_sportloto_for_participants','insert_from_table_bolshoe_sportloto_for_participants');
+add_action('wp_ajax_insert_bolshoe_sportloto_for_participants', 'insert_from_table_bolshoe_sportloto_for_participants');
 add_action('wp_ajax_nopriv_insert_bolshoe_sportloto_for_participants', 'insert_from_table_bolshoe_sportloto_for_participants');
 
 
@@ -2000,7 +2300,7 @@ function insert_from_table_bolshoe_sportloto_for_participants()
 	$wpdb->query('DELETE FROM `wp_lottery_bolshoe_sportloto_for_participants`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_bolshoe_sportloto_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5]. ','.$item->numbers[6] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_bolshoe_sportloto_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -2008,8 +2308,8 @@ function insert_from_table_bolshoe_sportloto_for_participants()
 }
 
 
-add_action('wp_ajax_get_bolshoe_sportloto_for_participants','get_bolshoe_sportloto_for_participants');
-add_action('wp_ajax_nopriv_get_bolshoe_sportloto_for_participants','get_bolshoe_sportloto_for_participants');
+add_action('wp_ajax_get_bolshoe_sportloto_for_participants', 'get_bolshoe_sportloto_for_participants');
+add_action('wp_ajax_nopriv_get_bolshoe_sportloto_for_participants', 'get_bolshoe_sportloto_for_participants');
 
 function get_bolshoe_sportloto_for_participants()
 {
@@ -2017,27 +2317,31 @@ function get_bolshoe_sportloto_for_participants()
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_bolshoe_sportloto_for_participants`');
 
 	$array_res = array();
-	for($i=1;$i<=50;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 50; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	for($i=1;$i<=10;$i++){
-		$array_res['COLUMN_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 10; $i++) {
+		$array_res['COLUMN_' . $i] = prepare_table_values();
 	}
 
 	$numbers_prev = array();
 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6,$row->NUMBER7);
-		
-		for($i=1;$i<=50;$i++){
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7);
+
+		for ($i = 1; $i <= 50; $i++) {
 			// Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i,$nums); },$numbers,$numbers_prev,$array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
-		for($i=1;$i<=10;$i++){
+		for ($i = 1; $i <= 10; $i++) {
 			// Столбец $i
-			calculate_case(function($nums) use($i) { return end($nums) == $i; },$numbers,$numbers_prev,$array_res['COLUMN_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return end($nums) == $i;
+			}, $numbers, $numbers_prev, $array_res['COLUMN_' . $i]);
 		}
 
 		$numbers_prev = $numbers;
@@ -2084,20 +2388,23 @@ function get_zhilishnaya_lotereya_for_participants()
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_zhilishnaya_lotereya_for_participants`');
 	$array_res = array();
 
-	for($i=1;$i<=90;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 90; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	$numbers_prev = array(); 
-	
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4);
+	$numbers_prev = array();
 
-		for($i=1;$i<=90;$i++){
+	foreach ($rows as $row) {
+		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4);
+		$numbers = filter_numbers(range(1, 90), $array);
+
+		for ($i = 1; $i <= 90; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) { return in_array($i, $nums);}, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
-		
+
 		$numbers_prev = $numbers;
 	}
 
@@ -2140,22 +2447,25 @@ function get_zolotaya_podkova_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_zolotaya_podkova_for_participants`');
-	
+
 	$array_res = array();
 
-	for($i=1;$i<=90;$i++){
-		$array_res['NUM_'.$i] = prepare_table_values();
+	for ($i = 1; $i <= 90; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
 	}
 
-	
-	$numbers_prev = array(); 
-	
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3);
 
-		for($i=1;$i<=90;$i++){
+	$numbers_prev = array();
+
+	foreach ($rows as $row) {
+		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3);
+		$numbers = filter_numbers(range(1, 90), $array);
+
+		for ($i = 1; $i <= 90; $i++) {
 			// Выпадет номер $i
-			calculate_case(function ($nums) use($i) { return in_array($i, $nums); }, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
 		$numbers_prev = $numbers;
@@ -2622,11 +2932,11 @@ function get_6_45_for_gamers()
 	$numbers_prev = array(); foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6);
 
-		for($j=4;$j<=45;$j++){
+		for ($j = 4; $j <= 45; $j++) {
 			// Любой из выпавших номеров кратен $j (0 не кратное)
-			calculate_case(function ($nums) use($j) {
+			calculate_case(function ($nums) use ($j) {
 				$count = count($nums);
-				
+
 				for ($i = 0; $i < $count; $i++) {
 					if ($nums[$i] != 0 && $nums[$i] % $j == 0) {
 						return true;
@@ -2634,7 +2944,7 @@ function get_6_45_for_gamers()
 				}
 
 				return false;
-			}, $numbers, $numbers_prev, $array_res['ANY_DIV_'.$j]);	
+			}, $numbers, $numbers_prev, $array_res['ANY_DIV_' . $j]);
 		}
 
 		// Наименьший выпавший номер Чет
@@ -2686,39 +2996,55 @@ function get_6_45_for_gamers()
 
 		// Четных больше, чем НЕчетных
 		calculate_case(function ($nums) {
-			$even = count(array_filter( $nums, function ($num) { return $num % 2 == 0;}));
-			$odd = count(array_filter( $nums,  function ($num) { return $num % 2 != 0;}));
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
 			return $even > $odd;
 		}, $numbers, $numbers_prev, $array_res['EVEN_GT_ODD']);
 
 		// Сумма выпавших четных номеров больше, чем сумма выпавших НЕчетных номеров
 		calculate_case(function ($nums) {
-			$even = array_filter( $nums, function ($num) { return $num % 2 == 0; });
-			$odd =  array_filter( $nums, function ($num) { return $num % 2 != 0; });
+			$even = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			$odd = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
 			return $even > $odd;
 		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_SUM_ODD']);
 
 		// Сумма всех выпавших номеров от 1 до 10 Больше 5.5
 		calculate_case(function ($nums) {
-			$filtered_list = array_filter( $nums, function ($num) { return $num >= 1 && $num <= 10; });
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			});
 			return array_sum($filtered_list) > 5.5;
 		}, $numbers, $numbers_prev, $array_res['SUM_1_10_GT_5.5']);
 
 		// Сумма всех выпавших номеров от 1 до 15 Больше 14.5
 		calculate_case(function ($nums) {
-			$filtered_list = array_filter( $nums, function ($num) { return $num >= 1 && $num <= 15; });
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 15;
+			});
 			return array_sum($filtered_list) > 14.5;
 		}, $numbers, $numbers_prev, $array_res['SUM_1_15_GT_14.5']);
 
 		// Сумма всех выпавших номеров от 1 до 15 Больше 16.5
 		calculate_case(function ($nums) {
-			$filtered_list = array_filter( $nums, function ($num) { return $num >= 1 && $num <= 15; });
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 15;
+			});
 			return array_sum($filtered_list) > 16.5;
 		}, $numbers, $numbers_prev, $array_res['SUM_1_15_GT_16.5']);
 
 		// Сумма всех выпавших номеров от 1 до 20 Больше 31.5
 		calculate_case(function ($nums) {
-			$filtered_list = array_filter( $nums, function ($num) { return $num >= 1 && $num <= 20;});
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 20;
+			});
 			return array_sum($filtered_list) > 31.5;
 		}, $numbers, $numbers_prev, $array_res['SUM_1_20_GT_31.5']);
 
@@ -2866,94 +3192,102 @@ function get_6_45_for_gamers()
 		}, $numbers, $numbers_prev, $array_res['SUM_41_45_GT_43.5']);
 
 		// чтоб оно не считало по 10000 раз одно и тоже 
-		$filtered_even = array_filter($numbers,function($num){ return $num %2 == 0;});
-		$filtered_even_prev = array_filter($numbers_prev,function($num){ return $num %2 ==0; });
+		$filtered_even = array_filter($numbers, function ($num) {
+			return $num % 2 == 0;
+		});
+		$filtered_even_prev = array_filter($numbers_prev, function ($num) {
+			return $num % 2 == 0;
+		});
 
 		$filtered_even_sum = array_sum($filtered_even);
 		$filtered_even_prev_sum = array_sum($filtered_even_prev);
 
 		// Сумма всех выпавших четных номеров Больше $i + 0.5
-		for($i=28; $i<=107; $i++){
-			calculate_case(function($sum) use ($i) {
+		for ($i = 28; $i <= 107; $i++) {
+			calculate_case(function ($sum) use ($i) {
 				return $sum > ($i + 0.5);
-			},$filtered_even_sum, $filtered_even_prev_sum, $array_res['SUM_EVEN_GT_'.$i.'.5']);
+			}, $filtered_even_sum, $filtered_even_prev_sum, $array_res['SUM_EVEN_GT_' . $i . '.5']);
 		}
 
-		$filtered_odd = array_filter($numbers,function($num){return $num %2 != 0;});
-		$filtered_odd_prev = array_filter($numbers_prev,function($num){return $num %2 != 0;});
-		
+		$filtered_odd = array_filter($numbers, function ($num) {
+			return $num % 2 != 0;
+		});
+		$filtered_odd_prev = array_filter($numbers_prev, function ($num) {
+			return $num % 2 != 0;
+		});
+
 		$filtered_odd_sum = array_sum($filtered_odd);
 		$filtered_odd_prev_sum = array_sum($filtered_odd_prev);
 
-		for($i = 30;$i <=111;$i++){
+		for ($i = 30; $i <= 111; $i++) {
 			// Сумма всех выпавших НЕчетных номеров Больше $i + 0.5
-			calculate_case(function ($sum) use($i) {
+			calculate_case(function ($sum) use ($i) {
 				return $sum > ($i + 0.5);
-			}, $filtered_odd_sum, $filtered_odd_prev_sum, $array_res['SUM_ODD_GT_'.$i.'.5']);
+			}, $filtered_odd_sum, $filtered_odd_prev_sum, $array_res['SUM_ODD_GT_' . $i . '.5']);
 		}
 
 		$min_numbers = min($numbers);
 		$max_numbers = max($numbers);
-		
+
 		$min_numbers_prev = min($numbers_prev);
 		$max_numbers_prev = max($numbers_prev);
 
 		$sum_max_min = ($max_numbers + $min_numbers);
 		$sum_max_min_prev = ($max_numbers_prev + $min_numbers_prev);
-		
-		for($i = 37; $i <= 54; $i++){
+
+		for ($i = 37; $i <= 54; $i++) {
 			// Сумма наименьшего и наибольшего из выпавших номеров Больше $i + 0.5;
-			calculate_case(function ($sum_max_min) use($i) {
+			calculate_case(function ($sum_max_min) use ($i) {
 				return $sum_max_min > ($i + 0.5);
-			}, $sum_max_min, $sum_max_min_prev, $array_res['SUM_MIN_MAX_GT_'.$i.'.5']);
+			}, $sum_max_min, $sum_max_min_prev, $array_res['SUM_MIN_MAX_GT_' . $i . '.5']);
 		}
 
-		for($i = 1; $i <=6;$i++){
+		for ($i = 1; $i <= 6; $i++) {
 			// $i-й номер больше 22.5
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return $nums[$i - 1] > 22.5;
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$i.'_GT_22.5']);
-	
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i . '_GT_22.5']);
+
 			// $i-й номер больше 23.5
-			calculate_case(function ($nums) use($i){
+			calculate_case(function ($nums) use ($i) {
 				return $nums[$i - 1] > 23.5;
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$i.'_GT_23.5']);
-	
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i . '_GT_23.5']);
+
 			// $i-й номер больше 30.5
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return $nums[$i - 1] > 30.5;
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$i.'_GT_30.5']);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i . '_GT_30.5']);
 
 			// $i-й номер Чет
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return $nums[$i - 1] % 2 == 0;
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$i.'EVEN']);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i . 'EVEN']);
 		}
 
-		for($i = 102;$i<=173;$i++){
+		for ($i = 102; $i <= 173; $i++) {
 			// Сумма всех выпавших номеров Больше $i + 0.5
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return array_sum($nums) > ($i + 0.5);
-			}, $numbers, $numbers_prev, $array_res['SUM_GT_'.$i.'.5']);
+			}, $numbers, $numbers_prev, $array_res['SUM_GT_' . $i . '.5']);
 		}
 
 		$min_numbers;
 		$min_numbers_prev;
 		$max_numbers;
 		$max_numbers_prev;
-		
-		for($i = 1;$i<=12;$i++){
+
+		for ($i = 1; $i <= 12; $i++) {
 			// Наименьший выпавший номер Больше ($i +0.5)
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return min($nums) > ($i + 0.5);
-			}, $numbers, $numbers_prev, $array_res['MIN_GT_'.$i.'.5']);
+			}, $numbers, $numbers_prev, $array_res['MIN_GT_' . $i . '.5']);
 		}
 
-		for($i = 33;$i<=44;$i++){
+		for ($i = 33; $i <= 44; $i++) {
 			// Наибольший выпавший номер Больше 33.5
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return max($nums) > ($i + 0.5);
-			}, $numbers, $numbers_prev, $array_res['MAX_GT_'.$i.'.5']);
+			}, $numbers, $numbers_prev, $array_res['MAX_GT_' . $i . '.5']);
 		}
 
 
@@ -3190,9 +3524,9 @@ function get_6_45_for_gamers()
 			);
 			return $odd > 3;
 		}, $numbers, $numbers_prev, $array_res['ODD_GT_3']);
-		
+
 		// Количество выпавших номеров от 1 до 10 включительно Ровно 1
-		calculate_case(function($nums){
+		calculate_case(function ($nums) {
 			$filtered = count(
 				array_filter(
 					$nums,
@@ -3202,7 +3536,7 @@ function get_6_45_for_gamers()
 				)
 			);
 			return $filtered < 2;
-		},$numbers,$numbers_prev,$array_res['COUNT_1_10_EQ_1']);
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_10_EQ_1']);
 
 		// Количество выпавших номеров от 1 до 15 включительно Меньше 2
 		calculate_case(function ($nums) {
@@ -3490,7 +3824,7 @@ function get_6_45_for_gamers()
 }
 
 
-add_action('wp_ajax_insert_5_36_for_gamers','insert_from_table_5_36_for_gamers');
+add_action('wp_ajax_insert_5_36_for_gamers', 'insert_from_table_5_36_for_gamers');
 add_action('wp_ajax_nopriv_insert_5_36_for_gamers', 'insert_from_table_5_36_for_gamers');
 
 
@@ -3506,7 +3840,7 @@ function insert_from_table_5_36_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_5_36_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_5_36_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_5_36_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -3514,8 +3848,8 @@ function insert_from_table_5_36_for_gamers()
 }
 
 
-add_action('wp_ajax_get_5_36_for_gamers','get_5_36_for_gamers');
-add_action('wp_ajax_nopriv_get_5_36_for_gamers','get_5_36_for_gamers');
+add_action('wp_ajax_get_5_36_for_gamers', 'get_5_36_for_gamers');
+add_action('wp_ajax_nopriv_get_5_36_for_gamers', 'get_5_36_for_gamers');
 
 function get_5_36_for_gamers()
 {
@@ -3689,278 +4023,599 @@ function get_5_36_for_gamers()
 	);
 
 	$array_res = array();
-	
+
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array();
+	$numbers_prev = array(); foreach ($rows as $row) {
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6);
 
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6);
-		
-		for($number = 4;$$number<=36;$number++){
+		for ($number = 4; $$number <= 36; $number++) {
 			// Любой из выпавших номеров кратен 4 (0 не кратное)
-			calculate_case(function($nums) use($number) {$count = count($nums); for($i=0;$i<$count;$i++){if($nums[$i] % $number == 0){ return true; }} return false;},$numbers,$numbers_prev,$array_res['ANY_DIV_'.$number]); 
+			calculate_case(function ($nums) use ($number) {
+				$count = count($nums);
+				for ($i = 0; $i < $count; $i++) {
+					if ($nums[$i] % $number == 0) {
+						return true;
+					}
+				}return false;
+			}, $numbers, $numbers_prev, $array_res['ANY_DIV_' . $number]);
 		}
 
 		// Наименьший выпавший номер Чет
-		calculate_case(function($nums){ return (min($nums) %2) ==0; },$numbers,$numbers_prev,$array_res['MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
 
 		// Наибольший выпавший номер Чет
-		calculate_case(function($nums){ return max($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return max($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) + min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_EVEN']);
 
 		// Выпадут соседние номера
-		calculate_case(function($nums){for($i =0;$i<count($nums);$i++){if($i > 0){if(($nums[$i] == $nums[$i-1]-1 || $nums[$i] == $nums[$i+1]-1) && ($nums[$i] == $nums[$i-1]+1 || $nums[$i+1]+1)){return true;}}}return false;},$numbers,$numbers_prev,$array_res['ADJACENT_NUMBERS']);
+		calculate_case(function ($nums) {
+			for ($i = 0; $i < count($nums); $i++) {
+				if ($i > 0) {
+					if (($nums[$i] == $nums[$i - 1] - 1 || $nums[$i] == $nums[$i + 1] - 1) && ($nums[$i] == $nums[$i - 1] + 1 || $nums[$i + 1] + 1)) {
+						return true;
+					}
+				}
+			}return false;
+		}, $numbers, $numbers_prev, $array_res['ADJACENT_NUMBERS']);
 
 		// Четных номеров выпадет больше, чем НЕчетных
-		calculate_case(function($nums){ $even = count(array_filter($nums,function($num){ return $num %2==0;})); $odd = count(array_filter($nums,function($num){ return $num%2!=0; })); return $even > $odd; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_GT_COUNT_ODD']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_GT_COUNT_ODD']);
 
 		// Сумма выпавших четных номеров больше, чем сумма выпавших НЕчетных номеров
-		calculate_case(function($nums) {$even = array_filter($nums,function($num) {return $num %2==0;}); $odd = array_filter($nums,function($num){return $num %2 != 0;}); return $even > $odd;},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_SUM_ODD']);
+		calculate_case(function ($nums) {
+			$even = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			$odd = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_SUM_ODD']);
 
 		// Сумма всех выпавших номеров ЧЕТ
-		calculate_case(function($nums){ return array_sum($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['SUM_EVEN']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN']);
 
 		// Сумма всех выпавших номеров от 1 до 10 Больше 5.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 1 && $num <=10;}); return array_sum($filtered_list) > 5.5;},$numbers,$numbers_prev,$array_res['SUM_1_10_GT_5.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			});
+			return array_sum($filtered_list) > 5.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_1_10_GT_5.5']);
 
 		// Сумма всех выпавших номеров от 1 до 12 Больше 10.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 1 && $num <=12;}); return array_sum($filtered_list) > 10.5;},$numbers,$numbers_prev,$array_res['SUM_1_12_GT_10.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 12;
+			});
+			return array_sum($filtered_list) > 10.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_1_12_GT_10.5']);
 
 		// Сумма всех выпавших номеров от 1 до 12 Больше 13.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 1 && $num <=12;}); return array_sum($filtered_list) > 13.5;},$numbers,$numbers_prev,$array_res['SUM_1_12_GT_13.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 12;
+			});
+			return array_sum($filtered_list) > 13.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_1_12_GT_13.5']);
 
 		// Сумма всех выпавших номеров от 1 до 18 Больше 19.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 1 && $num <=18;}); return array_sum($filtered_list) > 19.5;},$numbers,$numbers_prev,$array_res['SUM_1_18_GT_19.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 18;
+			});
+			return array_sum($filtered_list) > 19.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_1_18_GT_19.5']);
 
 		// Сумма всех выпавших номеров от 1 до 18 Больше 23.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 1 && $num <=18;}); return array_sum($filtered_list) > 23.5;},$numbers,$numbers_prev,$array_res['SUM_1_18_GT_23.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 18;
+			});
+			return array_sum($filtered_list) > 23.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_1_18_GT_23.5']);
 
 		// Сумма всех выпавших номеров от 11 до 20 Больше 15.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 11 && $num <=20;}); return array_sum($filtered_list) > 15.5;},$numbers,$numbers_prev,$array_res['SUM_11_20_GT_15.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 11 && $num <= 20;
+			});
+			return array_sum($filtered_list) > 15.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_11_20_GT_15.5']);
 
 		// Сумма всех выпавших номеров от 13 до 24 Больше 31.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 13 && $num <=24;}); return array_sum($filtered_list) > 31.5;},$numbers,$numbers_prev,$array_res['SUM_13_24_GT_31.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 13 && $num <= 24;
+			});
+			return array_sum($filtered_list) > 31.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_13_24_GT_31.5']);
 
 		// Сумма всех выпавших номеров от 13 до 24 Больше 37.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 13 && $num <=24;}); return array_sum($filtered_list) > 37.5;},$numbers,$numbers_prev,$array_res['SUM_13_24_GT_37.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 13 && $num <= 24;
+			});
+			return array_sum($filtered_list) > 37.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_13_24_GT_37.5']);
 
 		// Сумма всех выпавших номеров от 19 до 36 Больше 55.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 19 && $num <=36;}); return array_sum($filtered_list) > 55.5;},$numbers,$numbers_prev,$array_res['SUM_19_36_GT_55.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 19 && $num <= 36;
+			});
+			return array_sum($filtered_list) > 55.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_19_36_GT_55.5']);
 
 		// Сумма всех выпавших номеров от 19 до 36 Больше 67.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 19 && $num <=36;}); return array_sum($filtered_list) > 67.5;},$numbers,$numbers_prev,$array_res['SUM_19_36_GT_67.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 19 && $num <= 36;
+			});
+			return array_sum($filtered_list) > 67.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_19_36_GT_67.5']);
 
 		// Сумма всех выпавших номеров от 21 до 30 Больше 25.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 21 && $num <=30;}); return array_sum($filtered_list) > 25.5;},$numbers,$numbers_prev,$array_res['SUM_21_30_GT_25.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 21 && $num <= 30;
+			});
+			return array_sum($filtered_list) > 25.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_21_30_GT_25.5']);
 
 		// Сумма всех выпавших номеров от 25 до 36 Больше 55.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 25 && $num <=36;}); return array_sum($filtered_list) > 55.5;},$numbers,$numbers_prev,$array_res['SUM_25_36_GT_55.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 25 && $num <= 36;
+			});
+			return array_sum($filtered_list) > 55.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_25_36_GT_55.5']);
 
 		// Сумма всех выпавших номеров от 25 до 36 Больше 61.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 25 && $num <=36;}); return array_sum($filtered_list) > 61.5;},$numbers,$numbers_prev,$array_res['SUM_25_36_GT_61.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 25 && $num <= 36;
+			});
+			return array_sum($filtered_list) > 61.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_25_36_GT_61.5']);
 
 		// Сумма всех выпавших номеров от 31 до 36 Больше 33.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 31 && $num <=36;}); return array_sum($filtered_list) > 33.5;},$numbers,$numbers_prev,$array_res['SUM_31_36_GT_33.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 31 && $num <= 36;
+			});
+			return array_sum($filtered_list) > 33.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_31_36_GT_33.5']);
 
 
 
 		// Сумма всех выпавших Четных номеров Больше 33.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 33.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_33.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 33.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_33.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 39.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 39.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_39.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 39.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_39.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 42.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 42.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_42.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 42.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_42.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 45.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 45.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_45.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 45.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_45.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 46.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 46.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_46.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 46.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_46.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 50.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 50.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_50.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 50.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_50.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 53.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 53.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_53.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 53.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_53.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 61.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 61.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_61.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 61.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_61.5']);
 
 
 		// Сумма всех выпавших НЕчетных номеров Больше 30.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 30.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_30.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 30.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_30.5']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 36.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 36.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_36.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 36.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_36.5']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 39.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 39.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_39.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 39.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_39.5']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 43.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 43.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_43.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 43.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_43.5']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 47.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 47.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_47.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 47.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_47.5']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 50.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 50.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_50.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 50.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_50.5']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 57.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 57.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_57.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 57.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_57.5']);
 
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Больше 33.5
-		calculate_case(function($nums){return (max($nums) + min($nums)) > 33.5;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_GT_33.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) > 33.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_GT_33.5']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Больше 35.5
-		calculate_case(function($nums){return (max($nums) + min($nums)) > 35.5;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_GT_35.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) > 35.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_GT_35.5']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Больше 36.5
-		calculate_case(function($nums){return (max($nums) + min($nums)) > 36.5;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_GT_36.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) > 36.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_GT_36.5']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Больше 37.5
-		calculate_case(function($nums){return (max($nums) + min($nums)) > 37.5;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_GT_37.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) > 37.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_GT_37.5']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Больше 38.5
-		calculate_case(function($nums){return (max($nums) + min($nums)) > 38.5;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_GT_38.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) > 38.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_GT_38.5']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Больше 40.5
-		calculate_case(function($nums){return (max($nums) + min($nums)) > 40.5;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_GT_40.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) > 40.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_GT_40.5']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров ЧЕТ
-		calculate_case(function($nums) { return (max($nums) + min($nums)) %2 == 0; },$numbers,$numbers_prev,$array_res['SUM_MAX_MIN_GT_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MAX_MIN_GT_EVEN']);
 
-		for($i = 1; $i <=5;$i++){
+		for ($i = 1; $i <= 5; $i++) {
 			// $i-й номер Больше 18.5
-			calculate_case(function($nums) use($i) { return $nums[$i-1] > 18.5; },$numbers,$numbers_prev,$array_res['NUM_'.($i+1).'_GT_18.5']);
-			
+			calculate_case(function ($nums) use ($i) {
+				return $nums[$i - 1] > 18.5;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . ($i + 1) . '_GT_18.5']);
+
 			// $i-й номер Больше 25.5
-			calculate_case(function($nums) use($i) { return $nums[$i-1] > 25.5; },$numbers,$numbers_prev,$array_res['NUM_'.($i+1).'_GT_25.5']);
-			
+			calculate_case(function ($nums) use ($i) {
+				return $nums[$i - 1] > 25.5;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . ($i + 1) . '_GT_25.5']);
+
 			// $i-й номер Чет
-			calculate_case(function($nums) use($i) { return $nums[$i-1] %2 == 0; },$numbers,$numbers_prev,$array_res['NUM_'.($i+1).'_EVEN']);
+			calculate_case(function ($nums) use ($i) {
+				return $nums[$i - 1] % 2 == 0;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . ($i + 1) . '_EVEN']);
 		}
 
 		// Разность наибольшего и наименьшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) - min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_EVEN']);
 
 		// Разность наибольшего и наименьшего из выпавших номеров Больше 24.5
-		calculate_case(function($nums){return (max($nums) - min($nums)) > 24.5;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_GT_24.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) > 24.5;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_24.5']);
 
 		// Разность наибольшего и наименьшего из выпавших номеров Больше 25.5
-		calculate_case(function($nums){return (max($nums) - min($nums)) > 25.5;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_GT_25.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) > 25.5;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_25.5']);
 
 		// Сумма всех выпавших номеров Больше 80.5
-		calculate_case(function($nums){return array_sum($nums) > 80.5;},$numbers,$numbers_prev,$array_res['SUM_GT_80.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 80.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_80.5']);
 
 		// Сумма всех выпавших номеров Больше 82.5
-		calculate_case(function($nums){return array_sum($nums) > 82.5;},$numbers,$numbers_prev,$array_res['SUM_GT_82.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 82.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_82.5']);
 
 		// Сумма всех выпавших номеров Больше 86.5
-		calculate_case(function($nums){return array_sum($nums) > 86.5;},$numbers,$numbers_prev,$array_res['SUM_GT_86.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 86.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_86.5']);
 
 		// Сумма всех выпавших номеров Больше 92.5
-		calculate_case(function($nums){return array_sum($nums) > 92.5;},$numbers,$numbers_prev,$array_res['SUM_GT_92.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 92.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_92.5']);
 
 		// Сумма всех выпавших номеров Больше 98.5
-		calculate_case(function($nums){return array_sum($nums) > 98.5;},$numbers,$numbers_prev,$array_res['SUM_GT_98.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 98.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_98.5']);
 
 		// Сумма всех выпавших номеров Больше 102.5
-		calculate_case(function($nums){return array_sum($nums) > 102.5;},$numbers,$numbers_prev,$array_res['SUM_GT_102.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 102.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_102.5']);
 
 		// Сумма всех выпавших номеров Больше 104.5
-		calculate_case(function($nums){return array_sum($nums) > 104.5;},$numbers,$numbers_prev,$array_res['SUM_GT_104.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 104.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_104.5']);
 
 		$min_numbers = min($numbers);
 		$min_numbers_prev = min($numbers_prev);
 
-		for($i=1;$i<=11;$i++){
+		for ($i = 1; $i <= 11; $i++) {
 			// Наименьший выпавший номер Больше $i + 0.5
-			calculate_case(function($min) use($i) { return $min > ($i + 0.5); },$min_numbers,$min_numbers_prev,$array_res['MIN_GT_'.$i.'.5']);
+			calculate_case(function ($min) use ($i) {
+				return $min > ($i + 0.5);
+			}, $min_numbers, $min_numbers_prev, $array_res['MIN_GT_' . $i . '.5']);
 		}
 		$max_numbers = max($numbers);
 		$max_numbers_prev = max($numbers_prev);
-		for($i=25;$i<=35;$i++){
+		for ($i = 25; $i <= 35; $i++) {
 			// Наибольший выпавший номер Больше $i + 0.5
-			calculate_case(function($max)use($i){return $max > ($i + 0.5);},$max_numbers,$max_numbers_prev,$array_res['MAX_GT_'.$i.'.5']);
+			calculate_case(function ($max) use ($i) {
+				return $max > ($i + 0.5);
+			}, $max_numbers, $max_numbers_prev, $array_res['MAX_GT_' . $i . '.5']);
 		}
 
 		// Количество выпавших НЕчетных номеров Меньше 2
-		calculate_case(function($nums){$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd < 2;},$numbers,$numbers_prev,$array_res['ODD_LT_2']);
+		calculate_case(function ($nums) {
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $odd < 2;
+		}, $numbers, $numbers_prev, $array_res['ODD_LT_2']);
 
 		// Количество выпавших НЕчетных номеров Ровно 2
-		calculate_case(function($nums){$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd == 2;},$numbers,$numbers_prev,$array_res['ODD_EQ_2']);
+		calculate_case(function ($nums) {
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $odd == 2;
+		}, $numbers, $numbers_prev, $array_res['ODD_EQ_2']);
 
 		// Количество выпавших НЕчетных номеров Больше 2
-		calculate_case(function($nums){$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd > 2;},$numbers,$numbers_prev,$array_res['ODD_GT_2']);
+		calculate_case(function ($nums) {
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $odd > 2;
+		}, $numbers, $numbers_prev, $array_res['ODD_GT_2']);
 
 		// Количество выпавших Четных номеров Меньше 2
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even < 2;},$numbers,$numbers_prev,$array_res['ODD_LT_2']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $even < 2;
+		}, $numbers, $numbers_prev, $array_res['ODD_LT_2']);
 
 		// Количество выпавших Четных номеров Ровно 2
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even == 2;},$numbers,$numbers_prev,$array_res['EVEN_EQ_2']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $even == 2;
+		}, $numbers, $numbers_prev, $array_res['EVEN_EQ_2']);
 
 		// Количество выпавших Четных номеров Больше 2
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even > 2;},$numbers,$numbers_prev,$array_res['EVEN_GT_2']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $even > 2;
+		}, $numbers, $numbers_prev, $array_res['EVEN_GT_2']);
 
-		$ranges = [ [1,12], [1,18], [13,24], [19,36], [25,36] ];
+		$ranges = [[1, 12], [1, 18], [13, 24], [19, 36], [25, 36]];
 
-		foreach($ranges as $range){
-			$filtered = array_filter($numbers,function($num) use($range) { return $num >= $range[0] && $num <=$range[1]; });
-			$filtered_prev = array_filter($numbers_prev,function($num) use($range) { return $num >= $range[0] && $num <=$range[1]; });
+		foreach ($ranges as $range) {
+			$filtered = array_filter($numbers, function ($num) use ($range) {
+				return $num >= $range[0] && $num <= $range[1];
+			});
+			$filtered_prev = array_filter($numbers_prev, function ($num) use ($range) {
+				return $num >= $range[0] && $num <= $range[1];
+			});
 
 			// Количество выпавших номеров от $range[0] до $range[1] Меньше 2
-			calculate_case(function($filtered) { return count($filtered) < 2;},$filtered,$filtered_prev,$array_res['COUNT_'.$range[0].'_'.$range[1].'_LT_2']);
+			calculate_case(function ($filtered) {
+				return count($filtered) < 2;
+			}, $filtered, $filtered_prev, $array_res['COUNT_' . $range[0] . '_' . $range[1] . '_LT_2']);
 
 			// Количество выпавших номеров от $range[0] до $range[1] Ровно 2
-			calculate_case(function($filtered){ return count($filtered) == 2;},$filtered,$filtered_prev,$array_res['COUNT_'.$range[0].'_'.$range[1].'_EQ_2']);
+			calculate_case(function ($filtered) {
+				return count($filtered) == 2;
+			}, $filtered, $filtered_prev, $array_res['COUNT_' . $range[0] . '_' . $range[1] . '_EQ_2']);
 
 			// Количество выпавших номеров от $range[0] до $range[1] Больше 2
-			calculate_case(function($filtered) {return count($filtered) > 2;},$filtered,$filtered_prev,$array_res['COUNT_'.$range[0].'_'.$range[1].'_GT_2']);
+			calculate_case(function ($filtered) {
+				return count($filtered) > 2;
+			}, $filtered, $filtered_prev, $array_res['COUNT_' . $range[0] . '_' . $range[1] . '_GT_2']);
 		}
-		
 
-		for($number = 0; $number <=5;$number++){
+
+		for ($number = 0; $number <= 5; $number++) {
 			// Количество выпавших НЕчетных номеров Ровно $number
-			calculate_case(function($nums) use($number) { $odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd == $number;},$numbers,$numbers_prev,$array_res['ODD_EQ_'.$number]);
-	
+			calculate_case(function ($nums) use ($number) {
+				$odd = count(array_filter($nums, function ($num) {
+					return $num % 2 != 0;
+				}));
+				return $odd == $number;
+			}, $numbers, $numbers_prev, $array_res['ODD_EQ_' . $number]);
+
 			// Количество выпавших Четных номеров Ровно $number
-			calculate_case(function($nums) use($number) {$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even == $number;},$numbers,$numbers_prev,$array_res['EVEN_EQ_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$even = count(array_filter($nums, function ($num) {
+					return $num % 2 == 0;
+				}));
+				return $even == $number;
+			}, $numbers, $numbers_prev, $array_res['EVEN_EQ_' . $number]);
 		}
 
 
 		// Количество выпавших номеров от 1 до 10 Ровно 1
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=1 && $num <= 10;});return count($filtered) == 1;},$numbers,$numbers_prev,$array_res['COUNT_1_10_EQ_1']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			});
+			return count($filtered) == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_10_EQ_1']);
 
 		// Количество выпавших номеров от 1 до 12 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=1 && $num <= 12;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_1_12_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 12;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_12_EQ_2']);
 
 		// Количество выпавших номеров от 1 до 18 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=1 && $num <= 18;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_1_18_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 18;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_18_EQ_2']);
 
 		// Количество выпавших номеров от 11 до 20 Ровно 1
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=11 && $num <= 20;});return count($filtered) == 1;},$numbers,$numbers_prev,$array_res['COUNT_11_20_EQ_1']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 11 && $num <= 20;
+			});
+			return count($filtered) == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_11_20_EQ_1']);
 
 		// Количество выпавших номеров от 13 до 24 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=13 && $num <= 24;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_13_24_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 13 && $num <= 24;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_13_24_EQ_2']);
 
 		// Количество выпавших номеров от 19 до 36 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=19 && $num <= 36;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_19_36_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 19 && $num <= 36;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_19_36_EQ_2']);
 
 		// Количество выпавших номеров от 21 до 30 Ровно 1
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=21 && $num <= 30;});return count($filtered) == 1;},$numbers,$numbers_prev,$array_res['COUNT_21_30_EQ_1']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 21 && $num <= 30;
+			});
+			return count($filtered) == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_21_30_EQ_1']);
 
 		// Количество выпавших номеров от 25 до 36 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=25 && $num <= 36;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_25_36_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 25 && $num <= 36;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_25_36_EQ_2']);
 
 		// Количество выпавших номеров от 31 до 36 Ровно 1
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=31 && $num <= 36;});return count($filtered) == 1;},$numbers,$numbers_prev,$array_res['COUNT_31_36_EQ_1']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 31 && $num <= 36;
+			});
+			return count($filtered) == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_31_36_EQ_1']);
 
 		$numbers_prev = $numbers;
 	}
@@ -3974,7 +4629,7 @@ function get_5_36_for_gamers()
 }
 
 
-add_action('wp_ajax_insert_4_20_for_gamers','insert_from_table_4_20_for_gamers');
+add_action('wp_ajax_insert_4_20_for_gamers', 'insert_from_table_4_20_for_gamers');
 add_action('wp_ajax_nopriv_insert_4_20_for_gamers', 'insert_from_table_4_20_for_gamers');
 
 
@@ -3990,7 +4645,7 @@ function insert_from_table_4_20_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_4_20_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_4_20_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5]. ','.$item->numbers[6]. ','.$item->numbers[7] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_4_20_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -3998,8 +4653,8 @@ function insert_from_table_4_20_for_gamers()
 }
 
 
-add_action('wp_ajax_get_4_20_for_gamers','get_4_20_for_gamers');
-add_action('wp_ajax_nopriv_get_4_20_for_gamers','get_4_20_for_gamers');
+add_action('wp_ajax_get_4_20_for_gamers', 'get_4_20_for_gamers');
+add_action('wp_ajax_nopriv_get_4_20_for_gamers', 'get_4_20_for_gamers');
 
 function get_4_20_for_gamers()
 {
@@ -4086,94 +4741,149 @@ function get_4_20_for_gamers()
 	);
 
 	$array_res = array();
-	
+
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array();
+	$numbers_prev = array(); foreach ($rows as $row) {
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
 
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6,$row->NUMBER7,$row->NUMBER8);
-		
-		for($number = 7;$number <= 11;$i++) {
+		for ($number = 7; $number <= 11; $i++) {
 			// Любой из выпавших номеров кратен 7 (0 не кратное)
-			calculate_case(function($nums) use($number) { $count = count($nums); for($i=0;$i<$count;$i++){ if( $nums[$i] != 0 && ($nums[$i] % $number) == 0){ return true; }} return false;},$numbers,$numbers_prev,$array_res['ANY_DIV_'.$i]); 
+			calculate_case(function ($nums) use ($number) {
+				$count = count($nums);
+				for ($i = 0; $i < $count; $i++) {
+					if ($nums[$i] != 0 && ($nums[$i] % $number) == 0) {
+						return true;
+					}
+				}return false;
+			}, $numbers, $numbers_prev, $array_res['ANY_DIV_' . $i]);
 		}
 
 		// Наименьший выпавший номер Чет
-		calculate_case(function($nums){ return (min($nums) %2) ==0; },$numbers,$numbers_prev,$array_res['MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
 
 		// Наибольший выпавший номер Чет
-		calculate_case(function($nums){ return max($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return max($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) + min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_EVEN']);
 
 		// Разность наибольшего и наименьшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) - min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_EVEN']);
 
 		// Выпадут совпадающие номера в разных полях
-		calculate_case(function($nums){ return count(array_count_values($nums)) > 0; },$numbers,$numbers_prev,$array_res['SAME_NUMBERS']);
+		calculate_case(function ($nums) {
+			return count(array_count_values($nums)) > 0;
+		}, $numbers, $numbers_prev, $array_res['SAME_NUMBERS']);
 
 		// Четных номеров выпадет больше, чем НЕчетных
-		calculate_case(function($nums){ $even = count(array_filter($nums,function($num){ return $num %2==0;})); $odd = count(array_filter($nums,function($num){ return $num%2!=0; })); return $even > $odd; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_GT_COUNT_ODD']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_GT_COUNT_ODD']);
 
-		for($i = 1;$i<=20;$i++){
+		for ($i = 1; $i <= 20; $i++) {
 			// Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i ,$nums); },$numbers,$numbers_prev,$array_res['NUM_'.$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
-		for($number = 37;$number<=41;$i++){
+		for ($number = 37; $number <= 41; $i++) {
 			// Сумма всех выпавших НЕчетных номеров Больше 37.5
-			calculate_case(function($nums) use($number) {
-				$filtered = array_filter($nums,function($num){return $num %2 != 0;}); 
-				
+			calculate_case(function ($nums) use ($number) {
+				$filtered = array_filter($nums, function ($num) {
+					return $num % 2 != 0;
+				});
+
 				return array_sum($filtered) > ($number + 0.5);
-			},$numbers, $numbers_prev, $array_res['SUM_ODD_GT_'.$number.'.5']);
+			}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_' . $number . '.5']);
 		}
 
 		// Сумма всех выпавших четных номеров Больше 40.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 ==0;}); return array_sum($filtered) > 40.5;},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_40.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 40.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_40.5']);
 
 
-		for($number = 42;$number <= 45;$number++){
+		for ($number = 42; $number <= 45; $number++) {
 			// Сумма всех выпавших четных номеров Больше 40.5
-			calculate_case(function($nums) use($number) {
-				$filtered = array_filter($nums,function($num){ return $num %2 ==0; }); return array_sum($filtered) > ($number + 0.5);
-			},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				$filtered = array_filter($nums, function ($num) {
+					return $num % 2 == 0;
+				});
+				return array_sum($filtered) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_' . $number . '.5']);
 		}
 
-		for($number = 1;$number<=8;$number++){
+		for ($number = 1; $number <= 8; $number++) {
 			// $number-й номер Чет
-			calculate_case(function($nums) use($number) { return $nums[$number-1] %2 == 0; },$numbers,$numbers_prev,$array_res['NUM_'.$number.'_EVEN']);
+			calculate_case(function ($nums) use ($number) {
+				return $nums[$number - 1] % 2 == 0;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_EVEN']);
 		}
 
-		for($number = 12;$number<=18;$number++){
+		for ($number = 12; $number <= 18; $number++) {
 			// Разность наибольшего и наименьшего из выпавших номеров Больше $number + 0.5
-			calculate_case(function($nums) use($number) {return (max($nums) - min($nums)) > ($number + 0.5);},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return (max($nums) - min($nums)) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_' . $number . '.5']);
 		}
 
-		for($number = 82;$number<=86;$number++){
+		for ($number = 82; $number <= 86; $number++) {
 			// Сумма всех выпавших номеров Больше $number + 0.5
-			calculate_case(function($nums) use($number) {return array_sum($nums) > ($number + 0.5);},$numbers,$numbers_prev,$array_res['SUM_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return array_sum($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['SUM_GT_' . $number . '.5']);
 		}
 
-		for($number = 1;$number <= 3;$number++){
+		for ($number = 1; $number <= 3; $number++) {
 			// Наименьший выпавший номер Больше 1.5
-			calculate_case(function($nums) use($number) {return min($nums) > ($number +0.5);},$numbers,$numbers_prev,$array_res['MIN_GT_'.$number.'.5']);
-		}
-	
-		for($number = 17;$number <= 19;$number++){
-			// Наибольший выпавший номер Больше $number + 0.5
-			calculate_case(function($nums) use($number) {return max($nums) > ($number + 0.5);},$numbers,$numbers_prev,$array_res['MAX_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return min($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['MIN_GT_' . $number . '.5']);
 		}
 
-		for($number = 2;$number <= 6;$number++){
+		for ($number = 17; $number <= 19; $number++) {
+			// Наибольший выпавший номер Больше $number + 0.5
+			calculate_case(function ($nums) use ($number) {
+				return max($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['MAX_GT_' . $number . '.5']);
+		}
+
+		for ($number = 2; $number <= 6; $number++) {
 			// Количество выпавших НЕчетных номеров Ровно $number
-			calculate_case(function($nums) use($number) {$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd == $number;},$numbers,$numbers_prev,$array_res['ODD_EQ_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$odd = count(array_filter($nums, function ($num) {
+					return $num % 2 != 0;
+				}));
+				return $odd == $number;
+			}, $numbers, $numbers_prev, $array_res['ODD_EQ_' . $number]);
 
 			// Количество выпавших Четных номеров Ровно $number
-			calculate_case(function($nums) use($number) {$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even == $number;},$numbers,$numbers_prev,$array_res['EVEN_EQ_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$even = count(array_filter($nums, function ($num) {
+					return $num % 2 == 0;
+				}));
+				return $even == $number;
+			}, $numbers, $numbers_prev, $array_res['EVEN_EQ_' . $number]);
 		}
 
 		$numbers_prev = $numbers;
@@ -4192,9 +4902,9 @@ add_action('wp_ajax_insert_rapido_2_for_gamers', 'insert_from_table_rapido_2_for
 add_action('wp_ajax_nopriv_insert_rapido_2_for_gamers', 'insert_from_table_rapido_2_for_gamers');
 
 
- 
 
-add_action('wp_ajax_insert_rapido_2_for_gamers','insert_from_table_rapido_2_for_gamers');
+
+add_action('wp_ajax_insert_rapido_2_for_gamers', 'insert_from_table_rapido_2_for_gamers');
 add_action('wp_ajax_nopriv_insert_rapido_2_for_gamers', 'insert_from_table_rapido_2_for_gamers');
 
 
@@ -4210,7 +4920,7 @@ function insert_from_table_rapido_2_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_rapido_2_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_rapido_2_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5]. ','.$item->numbers[6]. ','.$item->numbers[7]. ','.$item->numbers[8] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_rapido_2_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -4218,8 +4928,8 @@ function insert_from_table_rapido_2_for_gamers()
 }
 
 
-add_action('wp_ajax_get_rapido_2_for_gamers','get_rapido_2_for_gamers');
-add_action('wp_ajax_nopriv_get_rapido_2_for_gamers','get_rapido_2_for_gamers');
+add_action('wp_ajax_get_rapido_2_for_gamers', 'get_rapido_2_for_gamers');
+add_action('wp_ajax_nopriv_get_rapido_2_for_gamers', 'get_rapido_2_for_gamers');
 
 function get_rapido_2_for_gamers()
 {
@@ -4320,187 +5030,408 @@ function get_rapido_2_for_gamers()
 	);
 
 	$array_res = array();
-	
+
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array();
+	$numbers_prev = array(); foreach ($rows as $row) {
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9);
 
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6,$row->NUMBER7,$row->NUMBER8,$row->NUMBER9);
-		
-		for($number = 1;$number<=20;$number++){
+		for ($number = 1; $number <= 20; $number++) {
 			// Выпадет номер 1
-			calculate_case(function($nums) use($number) { return in_array($number,$nums); },$numbers,$numbers_prev,$array_res['NUM_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				return in_array($number, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number]);
 		}
 
-		for($number = 1; $number <= 4;$number++){
+		for ($number = 1; $number <= 4; $number++) {
 			// Бонусный (Дополнительный) номер $number
-			calculate_case(function($nums) use($number) {return end($nums) == $number;},$numbers,$numbers_prev,$array_res['DOP_NUM_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				return end($nums) == $number;
+			}, $numbers, $numbers_prev, $array_res['DOP_NUM_' . $number]);
 		}
 
 		// Бонусный (Дополнительный) номер Больше 2.5
-		calculate_case(function($nums){return end($nums) > 2.5 ;},$numbers,$numbers_prev,$array_res['DOP_NUM_GT_2.5']);
+		calculate_case(function ($nums) {
+			return end($nums) > 2.5;
+		}, $numbers, $numbers_prev, $array_res['DOP_NUM_GT_2.5']);
 
 		// Бонусный (Дополнительный) номер Чет
-		calculate_case(function($nums){return end($nums) % 2 ==0 ;},$numbers,$numbers_prev,$array_res['DOP_NUM_EVEN']);
+		calculate_case(function ($nums) {
+			return end($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['DOP_NUM_EVEN']);
 
 		// Сумма всех выпавших номеров Больше 77.5
-		calculate_case(function($nums){return array_sum($nums) > 77.5;},$numbers,$numbers_prev,$array_res['SUM_GT_77.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 77.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_77.5']);
 
 		// Сумма всех выпавших номеров Больше 81.5
-		calculate_case(function($nums){return array_sum($nums) > 81.5;},$numbers,$numbers_prev,$array_res['SUM_GT_81.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 81.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_81.5']);
 
 		// Сумма всех выпавших номеров Больше 84.5
-		calculate_case(function($nums){return array_sum($nums) > 84.5;},$numbers,$numbers_prev,$array_res['SUM_GT_84.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 84.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_84.5']);
 
 		// Сумма всех выпавших номеров Больше 88.5
-		calculate_case(function($nums){return array_sum($nums) > 88.5;},$numbers,$numbers_prev,$array_res['SUM_GT_88.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 88.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_88.5']);
 
 		// Сумма всех выпавших номеров Больше 91.5
-		calculate_case(function($nums){return array_sum($nums) > 91.5;},$numbers,$numbers_prev,$array_res['SUM_GT_91.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 91.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_91.5']);
 
 		// Сумма всех выпавших номеров Чет
-		calculate_case(function($nums){ return (array_sum($nums) %2) == 0;},$numbers,$numbers_prev,$array_res['SUM_EVEN']);
+		calculate_case(function ($nums) {
+			return (array_sum($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 35.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 35.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_35.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 35.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_35.5']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 39.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 39.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_39.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 39.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_39.5']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 43.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 43.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_43.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 43.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_43.5']);
 
 		// Сумма всех выпавших четных номеров Больше 38.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 ==0;}); return array_sum($filtered) > 38.5;},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_38.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 38.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_38.5']);
 
 		// Сумма всех выпавших четных номеров Больше 42.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 ==0;}); return array_sum($filtered) > 42.5;},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_42.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 42.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_42.5']);
 
 		// Сумма всех выпавших четных номеров Больше 46.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 ==0;}); return array_sum($filtered) > 46.5;},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_46.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 46.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_46.5']);
 
 		// Сумма всех выпавших номеров от 1 до 7 Больше 11.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 1 && $num <=7;}); return array_sum($filtered_list) > 11.5;},$numbers,$numbers_prev,$array_res['SUM_1_7_GT_11.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 7;
+			});
+			return array_sum($filtered_list) > 11.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_1_7_GT_11.5']);
 
 		// Сумма всех выпавших номеров от 1 до 10 Больше 21.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 1 && $num <=10;}); return array_sum($filtered_list) > 21.5;},$numbers,$numbers_prev,$array_res['SUM_1_10_GT_21.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			});
+			return array_sum($filtered_list) > 21.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_1_10_GT_21.5']);
 
 		// Сумма всех выпавших номеров от 8 до 14 Больше 31.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 8 && $num <=14;}); return array_sum($filtered_list) > 31.5;},$numbers,$numbers_prev,$array_res['SUM_8_14_GT_31.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 8 && $num <= 14;
+			});
+			return array_sum($filtered_list) > 31.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_8_14_GT_31.5']);
 
 		// Сумма всех выпавших номеров от 11 до 20 Больше 62.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 11 && $num <=20;}); return array_sum($filtered_list) > 62.5;},$numbers,$numbers_prev,$array_res['SUM_11_20_GT_62.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 11 && $num <= 20;
+			});
+			return array_sum($filtered_list) > 62.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_11_20_GT_62.5']);
 
 		// Сумма всех выпавших номеров от 15 до 20 Больше 37.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 15 && $num <=20;}); return array_sum($filtered_list) > 37.5;},$numbers,$numbers_prev,$array_res['SUM_15_20_GT_37.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 15 && $num <= 20;
+			});
+			return array_sum($filtered_list) > 37.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_15_20_GT_37.5']);
 
 		// Наименьший выпавший номер Больше 2.5
-		calculate_case(function($nums){return min($nums) > 2.5;},$numbers,$numbers_prev,$array_res['MIN_GT_2.5']);
+		calculate_case(function ($nums) {
+			return min($nums) > 2.5;
+		}, $numbers, $numbers_prev, $array_res['MIN_GT_2.5']);
 
 		// Наибольший выпавший номер Больше 18.5
-		calculate_case(function($nums){return max($nums) > 18.5;},$numbers,$numbers_prev,$array_res['MAX_GT_18.5']);
+		calculate_case(function ($nums) {
+			return max($nums) > 18.5;
+		}, $numbers, $numbers_prev, $array_res['MAX_GT_18.5']);
 
 		// Наименьший выпавший номер Чет
-		calculate_case(function($nums){ return (min($nums) %2) ==0; },$numbers,$numbers_prev,$array_res['MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
 
 		// Наибольший выпавший номер Чет
-		calculate_case(function($nums){ return max($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return max($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Больше 20.5
-		calculate_case(function($nums){return (max($nums) + min($nums)) > 20.5;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_GT_20.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) > 20.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_GT_20.5']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) + min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_EVEN']);
 
 		// Разность наибольшего и наименьшего из выпавших номеров Больше 16.5
-		calculate_case(function($nums){return (max($nums) - min($nums)) > 16.5;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_GT_16.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) > 16.5;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_16.5']);
 
 		// Разность наибольшего и наименьшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) - min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_EVEN']);
 
-		for($number = 1;$number <= 8;$number++){
+		for ($number = 1; $number <= 8; $number++) {
 			// $number-й номер больше 10.5
-			calculate_case(function($nums) use($number) { return $nums[$number-1] > 10.5 ; },$numbers,$numbers_prev,$array_res['NUM_'.$number.'_GT_10.5']);
+			calculate_case(function ($nums) use ($number) {
+				return $nums[$number - 1] > 10.5;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_GT_10.5']);
 
 			// $number-й номер Чет
-			calculate_case(function($nums) use($number) { return $nums[$number-1] %2 == 0; },$numbers,$numbers_prev,$array_res['NUM_'.$number.'_EVEN']);
+			calculate_case(function ($nums) use ($number) {
+				return $nums[$number - 1] % 2 == 0;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_EVEN']);
 		}
 
 		// Любой из выпавших номеров кратен 10
-		calculate_case(function($nums){$count = count($nums); for($i=0;$i<$count;$i++){if($nums[$i] % 10 == 0){ return true; }}return false;},$numbers,$numbers_prev,$array_res['ANY_DIV_10']);
+		calculate_case(function ($nums) {
+			$count = count($nums);
+			for ($i = 0; $i < $count; $i++) {
+				if ($nums[$i] % 10 == 0) {
+					return true;
+				}
+			}return false;
+		}, $numbers, $numbers_prev, $array_res['ANY_DIV_10']);
 
 		// Четных номеров выпадет больше, чем НЕчетных
-		calculate_case(function($nums){ $even = count(array_filter($nums,function($num){ return $num %2==0;})); $odd = count(array_filter($nums,function($num){ return $num%2!=0; })); return $even > $odd; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_GT_COUNT_ODD']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_GT_COUNT_ODD']);
 
 		// Сумма выпавших Четных номеров Больше, чем сумма выпавших НЕчетных номеров
-		calculate_case(function($nums) {$even = array_filter($nums,function($num) {return $num %2==0;}); $odd = array_filter($nums,function($num){return $num %2 != 0;}); return $even > $odd;},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_SUM_ODD']);
+		calculate_case(function ($nums) {
+			$even = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			$odd = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_SUM_ODD']);
 
 		// Количество выпавших НЕчетных номеров Меньше 4
-		calculate_case(function($nums){$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd < 4;},$numbers,$numbers_prev,$array_res['ODD_LT_4']);
+		calculate_case(function ($nums) {
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $odd < 4;
+		}, $numbers, $numbers_prev, $array_res['ODD_LT_4']);
 
 		// Количество выпавших НЕчетных номеров Ровно 4
-		calculate_case(function($nums){$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd == 4;},$numbers,$numbers_prev,$array_res['ODD_EQ_4']);
+		calculate_case(function ($nums) {
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $odd == 4;
+		}, $numbers, $numbers_prev, $array_res['ODD_EQ_4']);
 
 		// Количество выпавших НЕчетных номеров Больше 4
-		calculate_case(function($nums){$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd > 4;},$numbers,$numbers_prev,$array_res['ODD_GT_4']);
+		calculate_case(function ($nums) {
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $odd > 4;
+		}, $numbers, $numbers_prev, $array_res['ODD_GT_4']);
 
 		// Количество выпавших Четных номеров Меньше 4
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even < 4;},$numbers,$numbers_prev,$array_res['ODD_LT_4']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $even < 4;
+		}, $numbers, $numbers_prev, $array_res['ODD_LT_4']);
 
 		// Количество выпавших Четных номеров Ровно 4
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even == 4;},$numbers,$numbers_prev,$array_res['EVEN_EQ_4']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $even == 4;
+		}, $numbers, $numbers_prev, $array_res['EVEN_EQ_4']);
 
 		// Количество выпавших Четных номеров Больше 4
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even > 4;},$numbers,$numbers_prev,$array_res['EVEN_GT_4']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $even > 4;
+		}, $numbers, $numbers_prev, $array_res['EVEN_GT_4']);
 
 		// Количество выпавших номеров от 1 до 7 включительно Меньше 3
-		calculate_case(function($nums){ $filtered = count(array_filter($nums,function($num){ return $num >= 1 && $num <= 7;})); return $filtered < 3; },$numbers,$numbers_prev,$array_res['COUNT_1_7_LT_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 7;
+			}));
+			return $filtered < 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_7_LT_3']);
 
 		// Количество выпавших номеров от 1 до 7 включительно Ровно 3
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 1 && $num <= 7;})); return $filtered == 3;  },$numbers,$numbers_prev,$array_res['COUNT_1_7_EQ_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 7;
+			}));
+			return $filtered == 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_7_EQ_3']);
 
 		// Количество выпавших номеров от 1 до 7 включительно Больше 3
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 1 && $num <= 7;})); return $filtered > 3;  },$numbers,$numbers_prev,$array_res['COUNT_1_7_GT_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 7;
+			}));
+			return $filtered > 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_7_GT_3']);
 
 		// Количество выпавших номеров от 1 до 10 включительно Меньше 4
-		calculate_case(function($nums){ $filtered = count(array_filter($nums,function($num){ return $num >= 1 && $num <= 10;})); return $filtered < 4; },$numbers,$numbers_prev,$array_res['COUNT_1_10_LT_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			}));
+			return $filtered < 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_10_LT_4']);
 
 		// Количество выпавших номеров от 1 до 10 включительно Ровно 4
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 1 && $num <= 10;})); return $filtered == 4;  },$numbers,$numbers_prev,$array_res['COUNT_1_10_EQ_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			}));
+			return $filtered == 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_10_EQ_4']);
 
 		// Количество выпавших номеров от 1 до 10 включительно Больше 4
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 1 && $num <= 10;})); return $filtered > 4;  },$numbers,$numbers_prev,$array_res['COUNT_1_10_GT_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			}));
+			return $filtered > 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_10_GT_4']);
 
 		// Количество выпавших номеров от 8 до 14 включительно Меньше 3
-		calculate_case(function($nums){ $filtered = count(array_filter($nums,function($num){ return $num >= 8 && $num <= 14;})); return $filtered < 3; },$numbers,$numbers_prev,$array_res['COUNT_8_14_LT_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 8 && $num <= 14;
+			}));
+			return $filtered < 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_8_14_LT_3']);
 
 		// Количество выпавших номеров от 8 до 14 включительно Ровно 3
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 8 && $num <= 14;})); return $filtered == 3;  },$numbers,$numbers_prev,$array_res['COUNT_8_14_EQ_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 8 && $num <= 14;
+			}));
+			return $filtered == 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_8_14_EQ_3']);
 
 		// Количество выпавших номеров от 8 до 14 включительно Больше 3
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 8 && $num <= 14;})); return $filtered > 3;  },$numbers,$numbers_prev,$array_res['COUNT_8_14_GT_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 8 && $num <= 14;
+			}));
+			return $filtered > 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_8_14_GT_3']);
 
 		// Количество выпавших номеров от 11 до 20 включительно Меньше 4
-		calculate_case(function($nums){ $filtered = count(array_filter($nums,function($num){ return $num >= 11 && $num <= 20;})); return $filtered < 4; },$numbers,$numbers_prev,$array_res['COUNT_11_20_LT_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 11 && $num <= 20;
+			}));
+			return $filtered < 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_11_20_LT_4']);
 
 		// Количество выпавших номеров от 11 до 20 включительно Ровно 4
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 11 && $num <= 20;})); return $filtered == 4;  },$numbers,$numbers_prev,$array_res['COUNT_11_20_EQ_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 11 && $num <= 20;
+			}));
+			return $filtered == 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_11_20_EQ_4']);
 
 		// Количество выпавших номеров от 11 до 20 включительно Больше 4
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 11 && $num <= 20;})); return $filtered > 4;  },$numbers,$numbers_prev,$array_res['COUNT_11_20_GT_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 11 && $num <= 20;
+			}));
+			return $filtered > 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_11_20_GT_4']);
 
 		// Количество выпавших номеров от 15 до 20 включительно Меньше 2
-		calculate_case(function($nums){ $filtered = count(array_filter($nums,function($num){ return $num >= 15 && $num <= 20;})); return $filtered < 2; },$numbers,$numbers_prev,$array_res['COUNT_15_20_LT_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 15 && $num <= 20;
+			}));
+			return $filtered < 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_15_20_LT_2']);
 
 		// Количество выпавших номеров от 15 до 20 включительно Ровно 2
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 15 && $num <= 20;})); return $filtered == 2;  },$numbers,$numbers_prev,$array_res['COUNT_15_20_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 15 && $num <= 20;
+			}));
+			return $filtered == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_15_20_EQ_2']);
 
 		// Количество выпавших номеров от 15 до 20 включительно Больше 2
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){return $num >= 15 && $num <= 20;})); return $filtered > 2;  },$numbers,$numbers_prev,$array_res['COUNT_15_20_GT_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num >= 15 && $num <= 20;
+			}));
+			return $filtered > 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_15_20_GT_2']);
 
-		
+
 		$numbers_prev = $numbers;
 	}
 
@@ -4652,49 +5583,80 @@ function get_24_12_for_gamers()
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12);
 
 		// Наименьший выпавший номер Больше 2.5
-		calculate_case(function ($nums) { return min($nums) > 2.5; }, $numbers, $numbers_prev, $array_res['MIN_GT_2.5']);
+		calculate_case(function ($nums) {
+			return min($nums) > 2.5;
+		}, $numbers, $numbers_prev, $array_res['MIN_GT_2.5']);
 
 		// Наименьший выпавший номер Чет
-		calculate_case(function ($nums) { return (min($nums) % 2) == 0; }, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
 
 		// Наибольший выпавший номер Больше 22.5
-		calculate_case(function ($nums) { return max($nums) > 22.5; }, $numbers, $numbers_prev, $array_res['MAX_GT_22.5']);
+		calculate_case(function ($nums) {
+			return max($nums) > 22.5;
+		}, $numbers, $numbers_prev, $array_res['MAX_GT_22.5']);
 
 		// Наибольший выпавший номер Чет
-		calculate_case(function ($nums) { return max($nums) % 2 == 0; }, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return max($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
 		// Разность наибольшего и наименьшего номеров Больше 21.5
-		calculate_case(function ($nums) { return (max($nums) - min($nums)) > 21.5; }, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_21.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) > 21.5;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_21.5']);
 
 		// Разность наибольшего и наименьшего номеров Чет
-		calculate_case(function ($nums) { return (max($nums) - min($nums)) % 2 == 0; }, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_EVEN']);
 
 		// Сумма наименьшего и наибольшего номеров Больше 25.5
-		calculate_case(function ($nums) { return (max($nums) + min($nums)) > 25.5; }, $numbers, $numbers_prev, $array_res['SUM_MAX_MIN_GT_25.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) > 25.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_MAX_MIN_GT_25.5']);
 
 		// Сумма наименьшего и наибольшего номеров Чет
-		calculate_case(function ($nums) { return (max($nums) + min($nums)) % 2 == 0; }, $numbers, $numbers_prev, $array_res['SUM_MAX_MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MAX_MIN_EVEN']);
 
 		// Сумма всех выпавших номеров Больше 140.5
-		calculate_case(function ($nums) { return array_sum($nums) > 140.5; }, $numbers, $numbers_prev, $array_res['SUM_GT_140.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 140.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_140.5']);
 
 		// Сумма всех выпавших номеров Больше 145.5
-		calculate_case(function ($nums) { return array_sum($nums) > 145.5; }, $numbers, $numbers_prev, $array_res['SUM_GT_145.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 145.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_145.5']);
 
 		// Сумма всех выпавших номеров Больше 150.5
-		calculate_case(function ($nums) { return array_sum($nums) > 150.5; }, $numbers, $numbers_prev, $array_res['SUM_GT_150.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 150.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_150.5']);
 
 		// Сумма всех выпавших номеров Больше 155.5
-		calculate_case(function ($nums) { return array_sum($nums) > 155.5; }, $numbers, $numbers_prev, $array_res['SUM_GT_155.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 155.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_155.5']);
 
 		// Сумма всех выпавших номеров Больше 160.5
-		calculate_case(function ($nums) { return array_sum($nums) > 160.5; }, $numbers, $numbers_prev, $array_res['SUM_GT_160.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 160.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_160.5']);
 
 		// Сумма всех выпавших номеров Чет
-		calculate_case(function ($nums) { return (array_sum($nums) % 2) == 0;}, $numbers, $numbers_prev, $array_res['SUM_EVEN']);
+		calculate_case(function ($nums) {
+			return (array_sum($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN']);
 
 		// Сумма всех выпавших Нечетных номеров Больше 67.5
-		calculate_case(function ($nums) { $filtered = array_filter($nums,function ($num) {return $num % 2 != 0;});
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
 			return count($filtered) > 67.5;
 		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_GT_67.5']);
 
@@ -4817,25 +5779,27 @@ function get_24_12_for_gamers()
 			return array_sum($filtered_list) > 82.5;
 		}, $numbers, $numbers_prev, $array_res['SUM_17_24_GT_82.5']);
 
-		for($number = 1;$number<=24;$number++){
+		for ($number = 1; $number <= 24; $number++) {
 			// Выпадет номер $number
-			calculate_case(function ($nums) use($number) {
+			calculate_case(function ($nums) use ($number) {
 				return in_array($number, $nums);
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$number]);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number]);
 		}
 
-		for($number = 1;$number <=12;$number++){
+		for ($number = 1; $number <= 12; $number++) {
 			// $number - й номер больше 12.5
-			calculate_case(function ($nums) use($number) {
+			calculate_case(function ($nums) use ($number) {
 				return $nums[$number - 1] > 12.5;
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$number.'_GT_12.5']);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_GT_12.5']);
 		}
 
-		for($number = 1;$number<=12;$number++){
+		for ($number = 1; $number <= 12; $number++) {
 			// $number - й номер Чет
-			calculate_case(function ($nums) use($number) {return $nums[$number - 1] % 2 == 0;}, $numbers, $numbers_prev, $array_res['NUM_'.$number.'_EVEN']);
+			calculate_case(function ($nums) use ($number) {
+				return $nums[$number - 1] % 2 == 0;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_EVEN']);
 		}
-		
+
 		// Любой из выпавших номеров кратен 10
 		calculate_case(function ($nums) {
 			$count = count($nums);
@@ -4848,9 +5812,9 @@ function get_24_12_for_gamers()
 		}, $numbers, $numbers_prev, $array_res['ANY_DIV_10']);
 
 		// Первый больше последнего
-		calculate_case(function($nums){
+		calculate_case(function ($nums) {
 			return $nums[0] > end($nums);
-		},$numbers,$numbers_prev,$array_res['FIRST_GT_LAST']);
+		}, $numbers, $numbers_prev, $array_res['FIRST_GT_LAST']);
 
 
 		// Четных больше, чем нечетных
@@ -5176,9 +6140,9 @@ function get_24_12_for_gamers()
 	wp_die();
 }
 
- 
 
-add_action('wp_ajax_insert_duel_for_gamers','insert_from_table_duel_for_gamers');
+
+add_action('wp_ajax_insert_duel_for_gamers', 'insert_from_table_duel_for_gamers');
 add_action('wp_ajax_nopriv_insert_duel_for_gamers', 'insert_from_table_duel_for_gamers');
 
 
@@ -5194,7 +6158,7 @@ function insert_from_table_duel_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_duel_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_duel_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1] .','.$item->numbers[2] . ','.$item->numbers[3].")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_duel_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -5202,8 +6166,8 @@ function insert_from_table_duel_for_gamers()
 }
 
 
-add_action('wp_ajax_get_duel_for_gamers','get_duel_for_gamers');
-add_action('wp_ajax_nopriv_get_duel_for_gamers','get_duel_for_gamers');
+add_action('wp_ajax_get_duel_for_gamers', 'get_duel_for_gamers');
+add_action('wp_ajax_nopriv_get_duel_for_gamers', 'get_duel_for_gamers');
 
 function get_duel_for_gamers()
 {
@@ -5307,7 +6271,7 @@ function get_duel_for_gamers()
 		'SAME_NUMBERS',
 		'COUNT_EVEN_GT_COUNT_ODD',
 		'NUM_DIV_4',
-		'ANY_NUM_DIV_5',
+		'NUM_DIV_5',
 		'NUM_DIV_6',
 		'NUM_DIV_7',
 		'NUM_DIV_8',
@@ -5344,249 +6308,556 @@ function get_duel_for_gamers()
 	);
 
 	$array_res = array();
-	
+
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array();
+	$numbers_prev = array(); foreach ($rows as $row) {
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4);
 
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4);
-		
-		for($i=1;$i<=26;$i++){
+		for ($i = 1; $i <= 26; $i++) {
 			//Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i,$nums); },$numbers,$numbers_prev,$array_res["NUM_".$i]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res["NUM_" . $i]);
 		}
 
-		for($number = 2; $number<=6; $number++){
+		for ($number = 2; $number <= 6; $number++) {
 			// Наименьший выпавший номер Больше $number + 0.5
-			calculate_case(function($nums) use($number) {return min($nums) > ($number + 0.5); },$numbers,$numbers_prev,$array_res['MIN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return min($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['MIN_GT_' . $number . '.5']);
 		}
 
-		for($number = 20; $number <= 24; $number++){
+		for ($number = 20; $number <= 24; $number++) {
 			// Наибольший выпавший номер Больше $number + 0.5
-			calculate_case(function($nums) use($number) {return max($nums) > $number + 0.5;},$numbers,$numbers_prev,$array_res['MAX_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return max($nums) > $number + 0.5;
+			}, $numbers, $numbers_prev, $array_res['MAX_GT_' . $number . '.5']);
 		}
-		
-		for($number = 9; $number <=21; $number++){
+
+		for ($number = 9; $number <= 21; $number++) {
 			// Разность наибольшего и наименьшего номеров Больше $number + 0.5
-			calculate_case(function($nums) use($number) { return (max($nums) - min($nums)) > ($number + 0.5); },$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return (max($nums) - min($nums)) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_' . $number . '.5']);
 		}
-		
+
 
 		// Разность наибольшего и наименьшего номеров ЧЕТ
-		calculate_case(function($nums){ return (max($nums) - min($nums)) %2 == 0; },$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_EVEN']);
 
 		// Сумма наибольшего и наименьшего номеров ЧЕТ
-		calculate_case(function($nums){ return (min($nums) + max($nums)) %2 == 0; },$numbers,$numbers_prev,$array_res['SUM_MAX_MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) + max($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MAX_MIN_EVEN']);
 
 		// Сумма наибольшего и наименьшего номеров Больше 26.5
-		calculate_case(function($nums){ return (min($nums) + max($nums)) > 26.5; },$numbers,$numbers_prev,$array_res['SUM_MAX_MIN_GT_26.5']);
+		calculate_case(function ($nums) {
+			return (min($nums) + max($nums)) > 26.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_MAX_MIN_GT_26.5']);
 
 		// Сумма всех выпавших номеров Больше 45.5
-		calculate_case(function($nums){return array_sum($nums) > 45.5;},$numbers,$numbers_prev,$array_res['SUM_GT_45.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 45.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_45.5']);
 
 		// Сумма всех выпавших номеров Больше 50.5
-		calculate_case(function($nums){return array_sum($nums) > 50.5;},$numbers,$numbers_prev,$array_res['SUM_GT_50.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 50.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_50.5']);
 
 		// Сумма всех выпавших номеров Больше 52.5
-		calculate_case(function($nums){return array_sum($nums) > 52.5;},$numbers,$numbers_prev,$array_res['SUM_GT_52.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 52.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_52.5']);
 
 		// Сумма всех выпавших номеров Больше 53.5
-		calculate_case(function($nums){return array_sum($nums) > 53.5;},$numbers,$numbers_prev,$array_res['SUM_GT_53.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 53.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_53.5']);
 
 		// Сумма всех выпавших номеров Больше 54.5
-		calculate_case(function($nums){return array_sum($nums) > 54.5;},$numbers,$numbers_prev,$array_res['SUM_GT_54.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 54.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_54.5']);
 
 		// Сумма всех выпавших номеров Больше 55.5
-		calculate_case(function($nums){return array_sum($nums) > 55.5;},$numbers,$numbers_prev,$array_res['SUM_GT_55.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 55.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_55.5']);
 
 		// Сумма всех выпавших номеров Больше 56.5
-		calculate_case(function($nums){return array_sum($nums) > 56.5;},$numbers,$numbers_prev,$array_res['SUM_GT_56.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 56.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_56.5']);
 
 		// Сумма всех выпавших номеров Больше 60.5
-		calculate_case(function($nums){return array_sum($nums) > 60.5;},$numbers,$numbers_prev,$array_res['SUM_GT_60.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 60.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_60.5']);
 
 		// Сумма всех выпавших номеров Больше 65.5
-		calculate_case(function($nums){return array_sum($nums) > 65.5;},$numbers,$numbers_prev,$array_res['SUM_GT_65.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 65.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_65.5']);
 
 		// Сумма всех выпавших номеров ЧЕТ
-		calculate_case(function($nums){ return array_sum($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['SUM_EVEN']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN']);
 
 		// Сумма всех выпавших Четных номеров Больше 22.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 22.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_22.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 22.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_22.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 24.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 24.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_24.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 24.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_24.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 25.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 25.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_25.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 25.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_25.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 26.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 26.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_26.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 26.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_26.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 27.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 27.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_27.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 27.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_27.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 28.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 28.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_28.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 28.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_28.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 32.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 32.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_32.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 32.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_32.5']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 21.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 21.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_21.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 21.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_21.5']);
 
-		for($number = 22; $number <= 26;$number++){
+		for ($number = 22; $number <= 26; $number++) {
 			// Сумма всех выпавших НЕчетных номеров Больше $number + 0.5
-			calculate_case(function($nums) use($number) {$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > ($number + 0.5);},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				$filtered = array_filter($nums, function ($num) {
+					return $num % 2 != 0;
+				});
+				return array_sum($filtered) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_' . $number . '.5']);
 		}
-		
-		// Сумма всех выпавших НЕчетных номеров Больше 29.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 29.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_29.5']);
 
-		
+		// Сумма всех выпавших НЕчетных номеров Больше 29.5
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 29.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_29.5']);
+
+
 		// Сумма всех выпавших номеров от 1 до 9 Больше 6.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 1 && $num <=9;}); return array_sum($filtered_list) > 6.5;},$numbers,$numbers_prev,$array_res['SUM_1_9_GT_6.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 9;
+			});
+			return array_sum($filtered_list) > 6.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_1_9_GT_6.5']);
 
 		// Сумма всех выпавших номеров от 1 до 13 Больше 13.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 1 && $num <=13;}); return array_sum($filtered_list) > 13.5;},$numbers,$numbers_prev,$array_res['SUM_1_13_GT_13.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 13;
+			});
+			return array_sum($filtered_list) > 13.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_1_13_GT_13.5']);
 
 		// Сумма всех выпавших номеров от 10 до 18  Больше 16.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num >=10 && $num <=18; }); return array_sum($filtered) > 16.5; },$numbers,$numbers_prev,$array_res['SUM_10_18_GT_16.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 10 && $num <= 18;
+			});
+			return array_sum($filtered) > 16.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_10_18_GT_16.5']);
 
 		// Сумма всех выпавших номеров от 14 до 26 Больше 40.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 14 && $num <=26;}); return array_sum($filtered_list) > 40.5;},$numbers,$numbers_prev,$array_res['SUM_14_26_GT_40.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 14 && $num <= 26;
+			});
+			return array_sum($filtered_list) > 40.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_14_26_GT_40.5']);
 
 		// Сумма всех выпавших номеров от 19 до 26 Больше 23.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 19 && $num <=26;}); return array_sum($filtered_list) > 23.5;},$numbers,$numbers_prev,$array_res['SUM_19_26_GT_23.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 19 && $num <= 26;
+			});
+			return array_sum($filtered_list) > 23.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_19_26_GT_23.5']);
 
 		// Выпадет ли номер кратный 5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){return $num % 5 == 0;}); return count($filtered) > 0;},$numbers,$numbers_prev,$array_res['NUM_DIV_5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 5 == 0;
+			});
+			return count($filtered) > 0;
+		}, $numbers, $numbers_prev, $array_res['NUM_DIV_5']);
 
 		// Наименьший выпавший номер Чет
-		calculate_case(function($nums){ return (min($nums) %2) ==0; },$numbers,$numbers_prev,$array_res['MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
 
 		// Наибольший выпавший номер Чет
-		calculate_case(function($nums){ return max($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return max($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
-		for($number = 1; $number <=4;$number++){
+		for ($number = 1; $number <= 4; $number++) {
 			// $number-й номер ЧЕТ
-			calculate_case(function($nums) use($number) { return $nums[$number-1] %2 == 0; },$numbers,$numbers_prev,$array_res['NUM_'.$number.'_EVEN']);
-		
+			calculate_case(function ($nums) use ($number) {
+				return $nums[$number - 1] % 2 == 0;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_EVEN']);
+
 			// $number-й номер Больше 13.5
-			calculate_case(function($nums) use($number) { return $nums[$number-1] > 13.5; },$numbers,$numbers_prev,$array_res['NUM_'.$number.'_GT_13.5']);
+			calculate_case(function ($nums) use ($number) {
+				return $nums[$number - 1] > 13.5;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_GT_13.5']);
 		}
 
 		// Выпадут соседние номера
-		calculate_case(function($nums){for($i =0;$i<count($nums);$i++){if($i > 0){if(($nums[$i] == $nums[$i-1]-1 || $nums[$i] == $nums[$i+1]-1) && ($nums[$i] == $nums[$i-1]+1 || $nums[$i+1]+1)){return true;}}}return false;},$numbers,$numbers_prev,$array_res['ADJACENT_NUMBERS']);
+		calculate_case(function ($nums) {
+			for ($i = 0; $i < count($nums); $i++) {
+				if ($i > 0) {
+					if (($nums[$i] == $nums[$i - 1] - 1 || $nums[$i] == $nums[$i + 1] - 1) && ($nums[$i] == $nums[$i - 1] + 1 || $nums[$i + 1] + 1)) {
+						return true;
+					}
+				}
+			}return false;
+		}, $numbers, $numbers_prev, $array_res['ADJACENT_NUMBERS']);
 
 		// Первый номер больше последнего
-		calculate_case(function($nums){ return $nums[0] > end($nums);},$numbers,$numbers_prev,$array_res['FIRST_GT_LAST']);
+		calculate_case(function ($nums) {
+			return $nums[0] > end($nums);
+		}, $numbers, $numbers_prev, $array_res['FIRST_GT_LAST']);
+
 
 		// Выпадут совпадающие номера в разных полях
-		calculate_case(function($nums){ return count(array_count_values($nums)) > 0; },$numbers,$numbers_prev,$array_res['SAME_NUMBERS']);
+		calculate_case(function ($nums) {
+			$half_one = array($nums[0], $nums[1]);
+			$half_two = array($nums[2], $nums[3]);
+
+			if (in_array($nums[0], $half_two) || in_array($nums[1], $half_two) || in_array($nums[2], $half_one) || in_array($nums[3], $half_one)) {
+				return true;
+			}
+			return false;
+		}, $numbers, $numbers_prev, $array_res['SAME_NUMBERS']);
+
 
 		// Четных номеров больше, чем НЕчетных
-		calculate_case(function($nums){ $even = count(array_filter($nums,function($num){ return $num %2==0;})); $odd = count(array_filter($nums,function($num){ return $num%2!=0; })); return $even > $odd; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_GT_COUNT_ODD']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_GT_COUNT_ODD']);
 
-		for($number=4;$number<=8;$number++){
+		for ($number = 4; $number <= 8; $number++) {
 			// Любой из выпавших номеров кратен $number (0-не кратное)
-			calculate_case(function($nums) use($number) {$count = count($nums);for($i=0;$i<$count;$i++){ if($nums[$i] != 0 && $nums[$i] % $number == 0){return true;}} return false;},$numbers,$numbers_prev,$array_res['NUM_DIV_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$count = count($nums);
+				for ($i = 0; $i < $count; $i++) {
+					if ($nums[$i] != 0 && $nums[$i] % $number == 0) {
+						return true;
+					}
+				}
+				
+				return false;
+			}, $numbers, $numbers_prev, $array_res['NUM_DIV_' . $number]);
 		}
 
 		// Количество выпавших Нечетных номеров меньше 2
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2!=0; })); return $filtered < 2; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_LT_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $filtered < 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_LT_2']);
 
 		// Количество выпавших Нечетных номеров ровно 2
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2!=0; })); return $filtered == 2; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_LT_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $filtered == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_LT_2']);
 
 		// Количество выпавших Нечетных номеров больше 2
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2!=0; })); return $filtered > 2; },$numbers,$numbers_prev,$array_res['COUNT_ODD_GT_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $filtered > 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_GT_2']);
 
 
 		// Количество выпавших Четных номеров меньше 2
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2 == 0; })); return $filtered < 2; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_LT_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $filtered < 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_LT_2']);
 
 		// Количество выпавших Четных номеров ровно 2
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2 == 0; })); return $filtered == 2; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $filtered == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_EQ_2']);
 
 		// Количество выпавших Четных номеров больше 2
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2==0; })); return $filtered > 2; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_GT_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $filtered > 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_GT_2']);
 
 		// Количество выпавших номеров от 1 до 9 меньше 1
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=9;})); return $count < 1; },$numbers,$numbers_prev,$array_res['COUNT_1_9_LT_1']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 9;
+			}));
+			return $count < 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_9_LT_1']);
 
 		// Количество выпавших номеров от 1 до 9 ровно 1
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=9;})); return $count == 1; },$numbers,$numbers_prev,$array_res['COUNT_1_9_EQ_1']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 9;
+			}));
+			return $count == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_9_EQ_1']);
 
 		// Количество выпавших номеров от 1 до 9 больше 1
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=9;})); return $count > 1; },$numbers,$numbers_prev,$array_res['COUNT_1_9_EQ_1']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 9;
+			}));
+			return $count > 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_9_EQ_1']);
 
 		// Количество выпавших номеров от 1 до 13 меньше 2
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=13;})); return $count < 1; },$numbers,$numbers_prev,$array_res['COUNT_1_13_LT_2']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 13;
+			}));
+			return $count < 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_13_LT_2']);
 
 		// Количество выпавших номеров от 1 до 13 ровно 2
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=13;})); return $count == 1; },$numbers,$numbers_prev,$array_res['COUNT_1_13_EQ_2']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 13;
+			}));
+			return $count == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_13_EQ_2']);
 
 		// Количество выпавших номеров от 1 до 13 больше 2
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=13;})); return $count > 1; },$numbers,$numbers_prev,$array_res['COUNT_1_13_EQ_2']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 13;
+			}));
+			return $count > 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_13_EQ_2']);
 
 		// Количество выпавших номеров от 10 до 18 меньше 1
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=10 && $num <=18;})); return $count < 10; },$numbers,$numbers_prev,$array_res['COUNT_10_18_LT_1']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 10 && $num <= 18;
+			}));
+			return $count < 10;
+		}, $numbers, $numbers_prev, $array_res['COUNT_10_18_LT_1']);
 
 		// Количество выпавших номеров от 10 до 18 ровно 1
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=10 && $num <=18;})); return $count == 1; },$numbers,$numbers_prev,$array_res['COUNT_10_18_EQ_1']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 10 && $num <= 18;
+			}));
+			return $count == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_10_18_EQ_1']);
 
 		// Количество выпавших номеров от 10 до 18 больше 1
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=10 && $num <=18;})); return $count > 1; },$numbers,$numbers_prev,$array_res['COUNT_10_18_GT_1']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 10 && $num <= 18;
+			}));
+			return $count > 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_10_18_GT_1']);
 
 		// Количество выпавших номеров от 14 до 26 меньше 2
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=14 && $num <=26;})); return $count < 2; },$numbers,$numbers_prev,$array_res['COUNT_14_26_LT_2']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 14 && $num <= 26;
+			}));
+			return $count < 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_14_26_LT_2']);
 
 		// Количество выпавших номеров от 14 до 26 ровно 2
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=14 && $num <=26;})); return $count == 2; },$numbers,$numbers_prev,$array_res['COUNT_14_26_EQ_2']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 14 && $num <= 26;
+			}));
+			return $count == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_14_26_EQ_2']);
 
 		// Количество выпавших номеров от 14 до 26 больше 2
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=14 && $num <=26;})); return $count > 2; },$numbers,$numbers_prev,$array_res['COUNT_14_26_GT_2']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 14 && $num <= 26;
+			}));
+			return $count > 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_14_26_GT_2']);
 
 		// Количество выпавших номеров от 19 до 26 меньше 1
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=19 && $num <=26;})); return $count < 1; },$numbers,$numbers_prev,$array_res['COUNT_19_26_LT_1']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 19 && $num <= 26;
+			}));
+			return $count < 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_19_26_LT_1']);
 
 		// Количество выпавших номеров от 19 до 26 ровно 1
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=19 && $num <=26;})); return $count == 1; },$numbers,$numbers_prev,$array_res['COUNT_19_26_EQ_1']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 19 && $num <= 26;
+			}));
+			return $count == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_19_26_EQ_1']);
 
 		// Количество выпавших номеров от 19 до 26 больше 1
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=19 && $num <=26;})); return $count > 1; },$numbers,$numbers_prev,$array_res['COUNT_19_26_GT_1']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 19 && $num <= 26;
+			}));
+			return $count > 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_19_26_GT_1']);
 
 		// Количество выпавших Нечетных номеров ровно 0
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2!=0; })); return $filtered == 0; },$numbers,$numbers_prev,$array_res['COUNT_ODD_EQ_0']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $filtered == 0;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_EQ_0']);
 
 		// Количество выпавших Нечетных номеров ровно 1
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2!=0; })); return $filtered == 1; },$numbers,$numbers_prev,$array_res['COUNT_ODD_EQ_1']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $filtered == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_EQ_1']);
 
 		// Количество выпавших Нечетных номеров ровно 2
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2!=0; })); return $filtered == 2; },$numbers,$numbers_prev,$array_res['COUNT_ODD_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $filtered == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_EQ_2']);
 
 		// Количество выпавших Нечетных номеров ровно 3
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2!=0; })); return $filtered == 3; },$numbers,$numbers_prev,$array_res['COUNT_ODD_EQ_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $filtered == 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_EQ_3']);
 
 		// Количество выпавших Нечетных номеров ровно 4
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2!=0; })); return $filtered == 4; },$numbers,$numbers_prev,$array_res['COUNT_ODD_EQ_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $filtered == 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_EQ_4']);
 
 		// Количество выпавших Четных номеров ровно 0
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2 == 0; })); return $filtered == 0; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_EQ_0']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $filtered == 0;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_EQ_0']);
 
 		// Количество выпавших Четных номеров ровно 1
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2 == 0; })); return $filtered == 1; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_EQ_1']); 
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $filtered == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_EQ_1']);
 
 		// Количество выпавших Четных номеров ровно 3
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2 == 0; })); return $filtered == 3; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_EQ_3']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $filtered == 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_EQ_3']);
 
 		// Количество выпавших Четных номеров ровно 4
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2 == 0; })); return $filtered == 4; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_EQ_4']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $filtered == 4;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_EQ_4']);
 
-		
+
 		$numbers_prev = $numbers;
 	}
 
@@ -5598,7 +6869,7 @@ function get_duel_for_gamers()
 	wp_die();
 }
 
-add_action('wp_ajax_insert_top_3_for_gamers','insert_from_table_top_3_for_gamers');
+add_action('wp_ajax_insert_top_3_for_gamers', 'insert_from_table_top_3_for_gamers');
 add_action('wp_ajax_nopriv_insert_top_3_for_gamers', 'insert_from_table_top_3_for_gamers');
 
 
@@ -5614,7 +6885,7 @@ function insert_from_table_top_3_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_top_3_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_top_3_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_top_3_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -5622,8 +6893,8 @@ function insert_from_table_top_3_for_gamers()
 }
 
 
-add_action('wp_ajax_get_top_3_for_gamers','get_top_3_for_gamers');
-add_action('wp_ajax_nopriv_get_top_3_for_gamers','get_top_3_for_gamers');
+add_action('wp_ajax_get_top_3_for_gamers', 'get_top_3_for_gamers');
+add_action('wp_ajax_nopriv_get_top_3_for_gamers', 'get_top_3_for_gamers');
 
 function get_top_3_for_gamers()
 {
@@ -5702,169 +6973,340 @@ function get_top_3_for_gamers()
 	);
 
 	$array_res = array();
-	
+
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array();
+	$numbers_prev = array(); foreach ($rows as $row) {
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3);
 
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3);
-		
 		// Наименьший выпавший номер Больше 1.5
-		calculate_case(function($nums){return min($nums) > 1.5;},$numbers,$numbers_prev,$array_res['MIN_GT_1.5']);
+		calculate_case(function ($nums) {
+			return min($nums) > 1.5;
+		}, $numbers, $numbers_prev, $array_res['MIN_GT_1.5']);
 
 		// Наибольший выпавший номер Больше 7.5
-		calculate_case(function($nums){return max($nums) > 7.5;},$numbers,$numbers_prev,$array_res['MAX_GT_7.5']);
+		calculate_case(function ($nums) {
+			return max($nums) > 7.5;
+		}, $numbers, $numbers_prev, $array_res['MAX_GT_7.5']);
 
 		// Разность наибольшего и наименьшего из выпавших номеров Больше 4.5
-		calculate_case(function($nums){return (max($nums) - min($nums)) > 4.5;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_GT_4.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) > 4.5;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_4.5']);
 
 		// Сумма всех выпавших номеров Больше 10.5
-		calculate_case(function($nums){return array_sum($nums) > 10.5;},$numbers,$numbers_prev,$array_res['SUM_GT_10.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 10.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_10.5']);
 
-		for($number = 12;$number <=16;$number++){			
+		for ($number = 12; $number <= 16; $number++) {
 			// Сумма всех выпавших номеров Больше 12.5
-			calculate_case(function($nums) use($number) {return array_sum($nums) > ($number + 0.5);}, $numbers,$numbers_prev,$array_res['SUM_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return array_sum($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['SUM_GT_' . $number . '.5']);
 		}
-		
+
 		// Сумма выпавших Четных номеров Больше, чем сумма выпавших НЕчетных номеров
-		calculate_case(function($nums) {$even = array_filter($nums,function($num) {return $num %2==0;}); $odd = array_filter($nums,function($num){return $num %2 != 0;}); return $even > $odd;},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_SUM_ODD']);
+		calculate_case(function ($nums) {
+			$even = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			$odd = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_SUM_ODD']);
 
 		// Сумма всех выпавших номеров от 0 до 3 Больше 1.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 0 && $num <=3;}); return array_sum($filtered_list) > 1.5;},$numbers,$numbers_prev,$array_res['SUM_0_3_GT_1.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 0 && $num <= 3;
+			});
+			return array_sum($filtered_list) > 1.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_0_3_GT_1.5']);
 
 		// Сумма всех выпавших номеров от 0 до 4 Больше 2.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 0 && $num <=4;}); return array_sum($filtered_list) > 2.5;},$numbers,$numbers_prev,$array_res['SUM_0_4_GT_2.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 0 && $num <= 4;
+			});
+			return array_sum($filtered_list) > 2.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_0_4_GT_2.5']);
 
 		// Сумма всех выпавших номеров от 0 до 4 Больше 4.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 0 && $num <=4;}); return array_sum($filtered_list) > 4.5;},$numbers,$numbers_prev,$array_res['SUM_0_4_GT_4.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 0 && $num <= 4;
+			});
+			return array_sum($filtered_list) > 4.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_0_4_GT_4.5']);
 
 
 		// Сумма всех выпавших номеров от 4 до 6 Больше 4.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 4 && $num <=6;}); return array_sum($filtered_list) > 4.5;},$numbers,$numbers_prev,$array_res['SUM_4_6_GT_4.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 4 && $num <= 6;
+			});
+			return array_sum($filtered_list) > 4.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_4_6_GT_4.5']);
 
 		// Сумма всех выпавших номеров от 4 до 6 Больше 5.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 4 && $num <=6;}); return array_sum($filtered_list) > 5.5;},$numbers,$numbers_prev,$array_res['SUM_4_6_GT_5.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 4 && $num <= 6;
+			});
+			return array_sum($filtered_list) > 5.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_4_6_GT_5.5']);
 
 		// Сумма всех выпавших номеров от 5 до 9 Больше 10.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 5 && $num <=9;}); return array_sum($filtered_list) > 10.5;},$numbers,$numbers_prev,$array_res['SUM_5_9_GT_10.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 5 && $num <= 9;
+			});
+			return array_sum($filtered_list) > 10.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_5_9_GT_10.5']);
 
 		// Сумма всех выпавших номеров от 5 до 9 Больше 14.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 5 && $num <=9;}); return array_sum($filtered_list) > 14.5;},$numbers,$numbers_prev,$array_res['SUM_5_9_GT_14.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 5 && $num <= 9;
+			});
+			return array_sum($filtered_list) > 14.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_5_9_GT_14.5']);
 
 		// Сумма всех выпавших номеров от 7 до 9 Больше 7.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 7 && $num <=9;}); return array_sum($filtered_list) > 7.5;},$numbers,$numbers_prev,$array_res['SUM_7_9_GT_7.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 7 && $num <= 9;
+			});
+			return array_sum($filtered_list) > 7.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_7_9_GT_7.5']);
 
 		// Сумма всех выпавших номеров от 7 до 9 Больше 8.5
-		calculate_case(function($nums){ $filtered_list = array_filter($nums,function($num) {return $num >= 7 && $num <=9;}); return array_sum($filtered_list) > 8.5;},$numbers,$numbers_prev,$array_res['SUM_7_9_GT_8.5']);
+		calculate_case(function ($nums) {
+			$filtered_list = array_filter($nums, function ($num) {
+				return $num >= 7 && $num <= 9;
+			});
+			return array_sum($filtered_list) > 8.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_7_9_GT_8.5']);
 
 
 		// Первый выпавший номер Больше 4.5
-		calculate_case(function($nums) {return $nums[0] > 4.5;},$numbers,$numbers_prev,$array_res['FIRST_GT_4.5']);
+		calculate_case(function ($nums) {
+			return $nums[0] > 4.5;
+		}, $numbers, $numbers_prev, $array_res['FIRST_GT_4.5']);
 
 		// Второй выпавший номер Больше 4.5
-		calculate_case(function($nums){return $nums[1] > 4.5;},$numbers,$numbers_prev,$array_res['SECOND_GT_4.5']);
+		calculate_case(function ($nums) {
+			return $nums[1] > 4.5;
+		}, $numbers, $numbers_prev, $array_res['SECOND_GT_4.5']);
 
 		// Третий выпавший номер Больше 4.5
-		calculate_case(function($nums){ return $nums[2] > 4.5; },$numbers,$numbers_prev,$array_res['THIRD_GT_4.5']);
+		calculate_case(function ($nums) {
+			return $nums[2] > 4.5;
+		}, $numbers, $numbers_prev, $array_res['THIRD_GT_4.5']);
 
 		// Первый выпавший номер Чет
-		calculate_case(function($nums){return $nums[0] %2==0;},$numbers,$numbers_prev,$array_res['FIRST_EVEN']);
+		calculate_case(function ($nums) {
+			return $nums[0] % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['FIRST_EVEN']);
 
 		// Второй выпавший номер Чет
-		calculate_case(function($nums) { return $nums[1] %2 == 0;},$numbers,$numbers_prev,$array_res['SECOND_EVEN']);
+		calculate_case(function ($nums) {
+			return $nums[1] % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SECOND_EVEN']);
 
 		// Третий выпавший номер Чет
-		calculate_case(function($nums){ return $nums[2] %2 == 0; },$numbers,$numbers_prev,$array_res['THIRD_EVEN']);
+		calculate_case(function ($nums) {
+			return $nums[2] % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['THIRD_EVEN']);
 
 		// Выпадут ли одинаковые (совпадающие) номера
-		calculate_case(function($nums) { $count_nums = count($nums); $count_values = array_count_values($nums); return count(array_values($count_values)) < $count_nums; }, $numbers,$numbers_prev,$array_res['SAME_NUMBERS']);
+		calculate_case(function ($nums) {
+			$count_nums = count($nums);
+			$count_values = array_count_values($nums);
+			return count(array_values($count_values)) < $count_nums;
+		}, $numbers, $numbers_prev, $array_res['SAME_NUMBERS']);
 
 		// Первый номер Больше последнего
-		calculate_case(function($nums) { return $nums[0] > end($nums); },$numbers,$numbers_prev,$array_res['FIRST_GT_LAST']);
+		calculate_case(function ($nums) {
+			return $nums[0] > end($nums);
+		}, $numbers, $numbers_prev, $array_res['FIRST_GT_LAST']);
 
 		// Выпадут соседние номера
-		calculate_case(function($nums){for($i =0;$i<count($nums);$i++){if($i > 0){if(($nums[$i] == $nums[$i-1]-1 || $nums[$i] == $nums[$i+1]-1) && ($nums[$i] == $nums[$i-1]+1 || $nums[$i+1]+1)){return true;}}}return false;},$numbers,$numbers_prev,$array_res['ADJACENT_NUMBERS']);
+		calculate_case(function ($nums) {
+			for ($i = 0; $i < count($nums); $i++) {
+				if ($i > 0) {
+					if (($nums[$i] == $nums[$i - 1] - 1 || $nums[$i] == $nums[$i + 1] - 1) && ($nums[$i] == $nums[$i - 1] + 1 || $nums[$i + 1] + 1)) {
+						return true;
+					}
+				}
+			}return false;
+		}, $numbers, $numbers_prev, $array_res['ADJACENT_NUMBERS']);
 
 		// Четных больше, чем НЕчетных
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 == 0; }));$odd = count(array_filter($nums,function($num){return $num %2 != 0;}));return $even > $odd;},$numbers,$numbers_prev,$array_res['EVEN_GT_ODD']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['EVEN_GT_ODD']);
 
 		// Наименьший выпавший номер ЧЕТ
-		calculate_case(function($nums){return (min($nums) %2) == 0;},$numbers,$numbers_prev,$array_res['MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
 
 		// Наибольший выпавший номер ЧЕТ
-		calculate_case(function($nums){return (max($nums) %2) == 0;},$numbers,$numbers_prev,$array_res['MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
 		// Сумма всех выпавших НЕчетных номеров Больше 7.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > 7.5;},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_7.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return array_sum($filtered) > 7.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_7.5']);
 
 		// Сумма всех выпавших четных номеров Больше 4.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2 ==0;}); return array_sum($filtered) > 4.5;},$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_4.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 4.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_4.5']);
 
 		// Разность наибольшего и наименьшего из выпавших номеров Больше 5.5
-		calculate_case(function($nums){return (max($nums) - min($nums)) > 5.5;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_GT_5.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) > 5.5;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_5.5']);
 
 		// Разность наибольшего и наименьшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) - min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_EVEN']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Больше 9.5
-		calculate_case(function($nums){return (max($nums) + min($nums)) > 9.5;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_GT_9.5']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) > 9.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_GT_9.5']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) + min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_EVEN']);
 
 		// Любой из выпавших номеров кратен 3 (0-не кратное)
-		calculate_case(function($nums){$count = count($nums);for($i=0;$i<$count;$i++){if($nums[$i] % 3 == 0){return true;}}return false;},$numbers,$numbers_prev,$array_res['NUM_DIV_3']);
+		calculate_case(function ($nums) {
+			$count = count($nums);
+			for ($i = 0; $i < $count; $i++) {
+				if ($nums[$i] % 3 == 0) {
+					return true;
+				}
+			}return false;
+		}, $numbers, $numbers_prev, $array_res['NUM_DIV_3']);
 
 		// Любой из выпавших номеров кратен 4 (0-не кратное)
-		calculate_case(function($nums){$count = count($nums);for($i=0;$i<$count;$i++){if($nums[$i] % 4 == 0){return true;}}return false;},$numbers,$numbers_prev,$array_res['NUM_DIV_4']);
+		calculate_case(function ($nums) {
+			$count = count($nums);
+			for ($i = 0; $i < $count; $i++) {
+				if ($nums[$i] % 4 == 0) {
+					return true;
+				}
+			}return false;
+		}, $numbers, $numbers_prev, $array_res['NUM_DIV_4']);
 
-		for($number = 1;$number <=9;$number++){
+		for ($number = 1; $number <= 9; $number++) {
 			// Выпадет номер 1
-			calculate_case(function($nums) use($number) { return in_array($number,$nums); },$numbers,$numbers_prev,$array_res['NUM_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				return in_array($number, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number]);
 		}
 
 		// Выпадет номер 0
-		calculate_case(function($nums){ return in_array(0,$nums); },$numbers,$numbers_prev,$array_res['NUM_0']);
+		calculate_case(function ($nums) {
+			return in_array(0, $nums);
+		}, $numbers, $numbers_prev, $array_res['NUM_0']);
 
 
 		// Количество выпавших нечетных номеров Меньше 1
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2!=0;});return count($filtered) < 1;},$numbers,$numbers_prev,$array_res['COUNT_ODD_LT_1']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return count($filtered) < 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_LT_1']);
 
 		// Количество выпавших нечетных номеров Ровно 1
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2!=0;});return count($filtered) == 1;},$numbers,$numbers_prev,$array_res['COUNT_ODD_EQ_1']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return count($filtered) == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_EQ_1']);
 
 		// Количество выпавших нечетных номеров Больше 1
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2!=0;});return count($filtered) > 1;},$numbers,$numbers_prev,$array_res['COUNT_ODD_GT_1']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			});
+			return count($filtered) > 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_GT_1']);
 
 
 		// Количество выпавших четных номеров Меньше 1
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2==0;});return count($filtered) < 1;},$numbers,$numbers_prev,$array_res['COUNT_EVEN_LT_1']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return count($filtered) < 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_LT_1']);
 
 		// Количество выпавших четных номеров Ровно 1
-		calculate_case(function($nums) { $filtered = array_filter($nums,function($num) { return $num %2 == 0; });  return count($filtered) == 1; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_EQ_1']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return count($filtered) == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_EQ_1']);
 
 		// Количество выпавших четных номеров Больше 1
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num %2==0;});return count($filtered) > 1;},$numbers,$numbers_prev,$array_res['COUNT_EVEN_GT_1']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return count($filtered) > 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_GT_1']);
 
-		$ranges = [[0,3],[0,4],[4,6],[5,9],[7,9]];
+		$ranges = [[0, 3], [0, 4], [4, 6], [5, 9], [7, 9]];
 
-		foreach($ranges as $range){
-			$filtered = array_filter($numbers,function($num) use($range){ 
-				return $num >=$range[0] && $num <= $range[1];
+		foreach ($ranges as $range) {
+			$filtered = array_filter($numbers, function ($num) use ($range) {
+				return $num >= $range[0] && $num <= $range[1];
 			});
 
-			$filtered_prev = array_filter($numbers_prev,function($num) use($range){ 
-				return $num >=$range[0] && $num <= $range[1];
+			$filtered_prev = array_filter($numbers_prev, function ($num) use ($range) {
+				return $num >= $range[0] && $num <= $range[1];
 			});
-		
+
 			// Количество выпавших номеров от $range[0] до $range[1] Меньше 1
-			calculate_case(function($filtered){ return count($filtered) < 1;},$filtered,$filtered_prev,$array_res['COUNT_'.$range[0].'_'.$range[1].'_LT_1']);
+			calculate_case(function ($filtered) {
+				return count($filtered) < 1;
+			}, $filtered, $filtered_prev, $array_res['COUNT_' . $range[0] . '_' . $range[1] . '_LT_1']);
 			// Количество выпавших номеров от $range[0] до $range[1] Ровно 1
-			calculate_case(function($filtered){ return count($filtered) == 1;},$filtered,$filtered_prev,$array_res['COUNT_'.$range[0].'_'.$range[1].'_EQ_1']);
+			calculate_case(function ($filtered) {
+				return count($filtered) == 1;
+			}, $filtered, $filtered_prev, $array_res['COUNT_' . $range[0] . '_' . $range[1] . '_EQ_1']);
 			// Количество выпавших номеров от $range[0] до $range[1] Больше 1
-			calculate_case(function($filtered) { return count($filtered) > 1;},$filtered,$filtered_prev,$array_res['COUNT_'.$range[0].'_'.$range[1].'_GT_1']);
+			calculate_case(function ($filtered) {
+				return count($filtered) > 1;
+			}, $filtered, $filtered_prev, $array_res['COUNT_' . $range[0] . '_' . $range[1] . '_GT_1']);
 		}
 
 		$numbers_prev = $numbers;
@@ -5878,9 +7320,9 @@ function get_top_3_for_gamers()
 	wp_die();
 }
 
- 
 
-add_action('wp_ajax_insert_keno_for_gamers','insert_from_table_keno_for_gamers');
+
+add_action('wp_ajax_insert_keno_for_gamers', 'insert_from_table_keno_for_gamers');
 add_action('wp_ajax_nopriv_insert_keno_for_gamers', 'insert_from_table_keno_for_gamers');
 
 
@@ -5896,7 +7338,7 @@ function insert_from_table_keno_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_keno_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_keno_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5]. ','.$item->numbers[6]. ','.$item->numbers[7]. ','.$item->numbers[8]. ','.$item->numbers[9]. ','.$item->numbers[10]. ','.$item->numbers[11]. ','.$item->numbers[12]. ','.$item->numbers[13]. ','.$item->numbers[14]. ','.$item->numbers[15]. ','.$item->numbers[16]. ','.$item->numbers[17]. ','.$item->numbers[18]. ','.$item->numbers[19]. ','.$item->numbers[20]. ','.$item->numbers[21] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_keno_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19] . ',' . $item->numbers[20] . ',' . $item->numbers[21] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -5904,8 +7346,8 @@ function insert_from_table_keno_for_gamers()
 }
 
 
-add_action('wp_ajax_get_keno_for_gamers','get_keno_for_gamers');
-add_action('wp_ajax_nopriv_get_keno_for_gamers','get_keno_for_gamers');
+add_action('wp_ajax_get_keno_for_gamers', 'get_keno_for_gamers');
+add_action('wp_ajax_nopriv_get_keno_for_gamers', 'get_keno_for_gamers');
 
 function get_keno_for_gamers()
 {
@@ -6088,170 +7530,365 @@ function get_keno_for_gamers()
 	);
 
 	$array_res = array();
-	
+
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array();
-
+	$numbers_prev = array(); 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6,$row->NUMBER7,$row->NUMBER8,$row->NUMBER9,$row->NUMBER10,$row->NUMBER11,$row->NUMBER12,$row->NUMBER13,$row->NUMBER14,$row->NUMBER15,$row->NUMBER16,$row->NUMBER17,$row->NUMBER18,$row->NUMBER19,$row->NUMBER20,$row->NUMBER21,$row->NUMBER22);
-		for($number = 11;$number <= 80;$number++){
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15, $row->NUMBER16, $row->NUMBER17, $row->NUMBER18, $row->NUMBER19, $row->NUMBER20);
+		for ($number = 11; $number <= 80; $number++) {
 			// Любой из выпавших номеров кратен $number
-			calculate_case(function($nums) use($number) {$count = count($nums); for($i=0;$i<$count;$i++){if($nums[$i] % $number == 0){ return true; }}return false;},$numbers,$numbers_prev,$array_res['ANY_DIV_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$count = count($nums);
+				for ($i = 0; $i < $count; $i++) {
+					if ($nums[$i] % $number == 0) {
+						return true;
+					}
+				}return false;
+			}, $numbers, $numbers_prev, $array_res['ANY_DIV_' . $number]);
 		}
 
 		// Наименьший выпавший номер Чет
-		calculate_case(function($nums){ return (min($nums) %2) ==0; },$numbers,$numbers_prev,$array_res['MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
 
 		// Наибольший выпавший номер Чет
-		calculate_case(function($nums){ return max($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return max($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) + min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_EVEN']);
 
 		// Сумма всех выпавших номеров Больше 762.5
-		calculate_case(function($nums){return array_sum($nums) > 762.5;},$numbers,$numbers_prev,$array_res['SUM_GT_762.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 762.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_762.5']);
 
 		// Сумма всех выпавших номеров Больше 786.5
-		calculate_case(function($nums){return array_sum($nums) > 786.5;},$numbers,$numbers_prev,$array_res['SUM_GT_786.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 786.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_786.5']);
 
 		// Сумма всех выпавших номеров Больше 809.5
-		calculate_case(function($nums){return array_sum($nums) > 809.5;},$numbers,$numbers_prev,$array_res['SUM_GT_809.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 809.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_809.5']);
 
 		// Сумма всех выпавших номеров Больше 832.5
-		calculate_case(function($nums){return array_sum($nums) > 832.5;},$numbers,$numbers_prev,$array_res['SUM_GT_832.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 832.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_832.5']);
 
 		// Сумма всех выпавших номеров Больше 857.5
-		calculate_case(function($nums){return array_sum($nums) > 857.5;},$numbers,$numbers_prev,$array_res['SUM_GT_857.5']);
+		calculate_case(function ($nums) {
+			return array_sum($nums) > 857.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_GT_857.5']);
 
-		for($number = 1;$number <= 7;$number++){
+		for ($number = 1; $number <= 7; $number++) {
 			// Наименьший выпавший номер Больше 1.5
-			calculate_case(function($nums) use($number) {return min($nums) > ($number + 0.5);},$numbers,$numbers_prev,$array_res['MIN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return min($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['MIN_GT_' . $number . '.5']);
 		}
 
-		for($number = 73;$number <= 79;$number++){
+		for ($number = 73; $number <= 79; $number++) {
 			// Наибольший выпавший номер Больше 73.5
-			calculate_case(function($nums) use($number) {return max($nums) > ($number + 0.5);},$numbers,$numbers_prev,$array_res['MAX_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return max($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['MAX_GT_' . $number . '.5']);
 		}
 
 		// Любой из выпавших номеров кратен 15
-		calculate_case(function($nums){$count = count($nums); for($i=0;$i<$count;$i++){if($nums[$i] % 15 == 0){ return true; }}return false;},$numbers,$numbers_prev,$array_res['ANY_DIV_15']);
+		calculate_case(function ($nums) {
+			$count = count($nums);
+			for ($i = 0; $i < $count; $i++) {
+				if ($nums[$i] % 15 == 0) {
+					return true;
+				}
+			}return false;
+		}, $numbers, $numbers_prev, $array_res['ANY_DIV_15']);
 
 		// Любой из выпавших номеров кратен 20
-		calculate_case(function($nums){$count = count($nums); for($i=0;$i<$count;$i++){if($nums[$i] % 20 == 0){ return true; }}return false;},$numbers,$numbers_prev,$array_res['ANY_DIV_20']);
+		calculate_case(function ($nums) {
+			$count = count($nums);
+			for ($i = 0; $i < $count; $i++) {
+				if ($nums[$i] % 20 == 0) {
+					return true;
+				}
+			}return false;
+		}, $numbers, $numbers_prev, $array_res['ANY_DIV_20']);
 
 		// Количество выпавших номеров от 1 до 20 Больше 4.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=1 && $num <= 20;});return count($filtered) > 4.5;},$numbers,$numbers_prev,$array_res['COUNT_1_20_GT_4.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 20;
+			});
+			return count($filtered) > 4.5;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_20_GT_4.5']);
 
 		// Количество выпавших номеров от 21 до 40 Больше 4.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=21 && $num <= 40;});return count($filtered) > 4.5;},$numbers,$numbers_prev,$array_res['COUNT_21_40_GT_4.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 21 && $num <= 40;
+			});
+			return count($filtered) > 4.5;
+		}, $numbers, $numbers_prev, $array_res['COUNT_21_40_GT_4.5']);
 
 		// Количество выпавших номеров от 41 до 60 Больше 4.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=41 && $num <= 60;});return count($filtered) > 4.5;},$numbers,$numbers_prev,$array_res['COUNT_41_60_GT_4.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 41 && $num <= 60;
+			});
+			return count($filtered) > 4.5;
+		}, $numbers, $numbers_prev, $array_res['COUNT_41_60_GT_4.5']);
 
 		// Количество выпавших номеров от 61 до 80 Больше 4.5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=61 && $num <= 80;});return count($filtered) > 4.5;},$numbers,$numbers_prev,$array_res['COUNT_61_80_GT_4.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 61 && $num <= 80;
+			});
+			return count($filtered) > 4.5;
+		}, $numbers, $numbers_prev, $array_res['COUNT_61_80_GT_4.5']);
 
 		// Количество выпавших НЕчетных номеров Меньше 10
-		calculate_case(function($nums){$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd < 10;},$numbers,$numbers_prev,$array_res['ODD_LT_10']);
+		calculate_case(function ($nums) {
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $odd < 10;
+		}, $numbers, $numbers_prev, $array_res['ODD_LT_10']);
 
 		// Количествово выпавших НЕчетных номеров Ровно 10
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2 == 0;})); return $filtered == 10;   },$numbers,$numbers_prev,$array_res['COUNT_ODD_EQ_10']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $filtered == 10;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_EQ_10']);
 
 		// Количество выпавших НЕчетных номеров Больше 10
-		calculate_case(function($nums){$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd > 10;},$numbers,$numbers_prev,$array_res['ODD_GT_10']);
+		calculate_case(function ($nums) {
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $odd > 10;
+		}, $numbers, $numbers_prev, $array_res['ODD_GT_10']);
 
 
 		// Количество выпавших Четных номеров Меньше 10
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even < 10;},$numbers,$numbers_prev,$array_res['EVEN_LT_10']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $even < 10;
+		}, $numbers, $numbers_prev, $array_res['EVEN_LT_10']);
 
 		// Количество выпавших Четных номеров Ровно 10
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even == 10;},$numbers,$numbers_prev,$array_res['EVEN_EQ_10']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $even == 10;
+		}, $numbers, $numbers_prev, $array_res['EVEN_EQ_10']);
 
 		// Количество выпавших Четных номеров Больше 10
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even > 10;},$numbers,$numbers_prev,$array_res['EVEN_GT_10']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $even > 10;
+		}, $numbers, $numbers_prev, $array_res['EVEN_GT_10']);
 
 		// эти числа подставятся в нужные позиции
-		$ranges = [[1,10,3],[1,40,10],[11,20,3],[21,30,3],[31,40,3],[41,50,3],[41,80,10],[51,60,3],[61,70,3],[71,80,3],];
+		$ranges = [[1, 10, 3], [1, 40, 10], [11, 20, 3], [21, 30, 3], [31, 40, 3], [41, 50, 3], [41, 80, 10], [51, 60, 3], [61, 70, 3], [71, 80, 3],];
 
-		foreach($ranges as $range){
-			$filtered = array_filter($numbers,function($num) use($range) { return $num >= $range[0] && $num <= $range[1]; });
-			$filtered_prev = array_filter($numbers,function($num) use($range) { return $num >= $range[0] && $num <= $range[1]; });
-			
+		foreach ($ranges as $range) {
+			$filtered = array_filter($numbers, function ($num) use ($range) {
+				return $num >= $range[0] && $num <= $range[1];
+			});
+			$filtered_prev = array_filter($numbers, function ($num) use ($range) {
+				return $num >= $range[0] && $num <= $range[1];
+			});
+
 			// Количество выпавших номеров от $range[0] до $range[1] Меньше $range[2]
-			calculate_case(function($filtered) use($range) { return count($filtered) < $range[2];},$filtered,$filtered_prev,$array_res['COUNT_'.$range[0].'_'.$range[1].'_LT_'.$range[2]]);
+			calculate_case(function ($filtered) use ($range) {
+				return count($filtered) < $range[2];
+			}, $filtered, $filtered_prev, $array_res['COUNT_' . $range[0] . '_' . $range[1] . '_LT_' . $range[2]]);
 
 			// Количество выпавших номеров от $range[0] до $range[1] Ровно $range[2]
-			calculate_case(function($filtered) use($range) { return count($filtered) == $range[2];},$filtered,$filtered_prev,$array_res['COUNT_'.$range[0].'_'.$range[1].'_EQ_'.$range[2]]);
+			calculate_case(function ($filtered) use ($range) {
+				return count($filtered) == $range[2];
+			}, $filtered, $filtered_prev, $array_res['COUNT_' . $range[0] . '_' . $range[1] . '_EQ_' . $range[2]]);
 
 			// Количество выпавших номеров от $range[0] до $range[1] Больше $range[2]
-			calculate_case(function($filtered) use($range) { return count($filtered) > $range[2];},$numbers,$numbers_prev,$array_res['COUNT_'.$range[0].'_'.$range[1].'_GT_'.$range[2]]);
+			calculate_case(function ($filtered) use ($range) {
+				return count($filtered) > $range[2];
+			}, $numbers, $numbers_prev, $array_res['COUNT_' . $range[0] . '_' . $range[1] . '_GT_' . $range[2]]);
 		}
 
-		for($number = 5;$number<=15;$number++){
+		for ($number = 5; $number <= 15; $number++) {
 			// Количество выпавших НЕчетных номеров Ровно $number
-			calculate_case(function($nums) use($number) {$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd == $number;},$numbers,$numbers_prev,$array_res['ODD_EQ_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$odd = count(array_filter($nums, function ($num) {
+					return $num % 2 != 0;
+				}));
+				return $odd == $number;
+			}, $numbers, $numbers_prev, $array_res['ODD_EQ_' . $number]);
 		}
 
-		for($number = 5;$number <= 15; $number++){
+		for ($number = 5; $number <= 15; $number++) {
 			// Количество выпавших Четных номеров Ровно $number
-			calculate_case(function($nums) use($number) {$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even == $number;},$numbers,$numbers_prev,$array_res['EVEN_EQ_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$even = count(array_filter($nums, function ($num) {
+					return $num % 2 == 0;
+				}));
+				return $even == $number;
+			}, $numbers, $numbers_prev, $array_res['EVEN_EQ_' . $number]);
 		}
 
 
 		// Количество выпавших номеров от 1 до 10 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=1 && $num <= 10;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_1_10_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_10_EQ_2']);
 
 		// Количество выпавших номеров от 1 до 20 Ровно 5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=1 && $num <= 20;});return count($filtered) == 5;},$numbers,$numbers_prev,$array_res['COUNT_1_20_EQ_5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 20;
+			});
+			return count($filtered) == 5;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_20_EQ_5']);
 
 		// Количество выпавших номеров от 1 до 26 Ровно 6
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=1 && $num <= 26;});return count($filtered) == 6;},$numbers,$numbers_prev,$array_res['COUNT_1_26_EQ_6']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 26;
+			});
+			return count($filtered) == 6;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_26_EQ_6']);
 
 		// Количество выпавших номеров от 1 до 40 Ровно 10
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=1 && $num <= 40;});return count($filtered) == 10;},$numbers,$numbers_prev,$array_res['COUNT_1_40_EQ_10']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 40;
+			});
+			return count($filtered) == 10;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_40_EQ_10']);
 
 		// Количество выпавших номеров от 11 до 20 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=11 && $num <= 20;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_11_20_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 11 && $num <= 20;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_11_20_EQ_2']);
 
 		// Количество выпавших номеров от 21 до 30 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=21 && $num <= 30;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_21_30_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 21 && $num <= 30;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_21_30_EQ_2']);
 
 		// Количество выпавших номеров от 21 до 40 Ровно 5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=21 && $num <= 40;});return count($filtered) == 5;},$numbers,$numbers_prev,$array_res['COUNT_21_40_EQ_5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 21 && $num <= 40;
+			});
+			return count($filtered) == 5;
+		}, $numbers, $numbers_prev, $array_res['COUNT_21_40_EQ_5']);
 
 		// Количество выпавших номеров от 27 до 53 Ровно 7
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=27 && $num <= 53;});return count($filtered) == 7;},$numbers,$numbers_prev,$array_res['COUNT_27_53_EQ_7']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 27 && $num <= 53;
+			});
+			return count($filtered) == 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_27_53_EQ_7']);
 
 		// Количество выпавших номеров от 31 до 40 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=31 && $num <= 40;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_31_40_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 31 && $num <= 40;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_31_40_EQ_2']);
 
 		// Количество выпавших номеров от 41 до 50 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=41 && $num <= 50;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_41_50_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 41 && $num <= 50;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_41_50_EQ_2']);
 
 		// Количество выпавших номеров от 41 до 60 Ровно 5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=41 && $num <= 60;});return count($filtered) == 5;},$numbers,$numbers_prev,$array_res['COUNT_41_60_EQ_5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 41 && $num <= 60;
+			});
+			return count($filtered) == 5;
+		}, $numbers, $numbers_prev, $array_res['COUNT_41_60_EQ_5']);
 
 		// Количество выпавших номеров от 41 до 80 Ровно 10
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=41 && $num <= 80;});return count($filtered) == 10;},$numbers,$numbers_prev,$array_res['COUNT_41_80_EQ_10']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 41 && $num <= 80;
+			});
+			return count($filtered) == 10;
+		}, $numbers, $numbers_prev, $array_res['COUNT_41_80_EQ_10']);
 
 		// Количество выпавших номеров от 51 до 60 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=51 && $num <= 60;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_51_60_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 51 && $num <= 60;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_51_60_EQ_2']);
 
 		// Количество выпавших номеров от 54 до 80 Ровно 7
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=54 && $num <= 80;});return count($filtered) == 7;},$numbers,$numbers_prev,$array_res['COUNT_54_80_EQ_7']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 54 && $num <= 80;
+			});
+			return count($filtered) == 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_54_80_EQ_7']);
 
 		// Количество выпавших номеров от 61 до 70 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=61 && $num <= 70;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_61_70_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 61 && $num <= 70;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_61_70_EQ_2']);
 
 		// Количество выпавших номеров от 61 до 80 Ровно 5
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=61 && $num <= 80;});return count($filtered) == 5;},$numbers,$numbers_prev,$array_res['COUNT_61_80_EQ_5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 61 && $num <= 80;
+			});
+			return count($filtered) == 5;
+		}, $numbers, $numbers_prev, $array_res['COUNT_61_80_EQ_5']);
 
 		// Количество выпавших номеров от 71 до 80 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=71 && $num <= 80;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_71_80_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 71 && $num <= 80;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_71_80_EQ_2']);
 
-		
+
 		$numbers_prev = $numbers;
 	}
 
@@ -6264,9 +7901,9 @@ function get_keno_for_gamers()
 }
 
 
- 
 
-add_action('wp_ajax_insert_6_36_for_gamers','insert_from_table_6_36_for_gamers');
+
+add_action('wp_ajax_insert_6_36_for_gamers', 'insert_from_table_6_36_for_gamers');
 add_action('wp_ajax_nopriv_insert_6_36_for_gamers', 'insert_from_table_6_36_for_gamers');
 
 
@@ -6282,7 +7919,7 @@ function insert_from_table_6_36_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_6_36_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_6_36_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_6_36_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -6290,8 +7927,8 @@ function insert_from_table_6_36_for_gamers()
 }
 
 
-add_action('wp_ajax_get_6_36_for_gamers','get_6_36_for_gamers');
-add_action('wp_ajax_nopriv_get_6_36_for_gamers','get_6_36_for_gamers');
+add_action('wp_ajax_get_6_36_for_gamers', 'get_6_36_for_gamers');
+add_action('wp_ajax_nopriv_get_6_36_for_gamers', 'get_6_36_for_gamers');
 
 function get_6_36_for_gamers()
 {
@@ -6390,91 +8027,167 @@ function get_6_36_for_gamers()
 	);
 
 	$array_res = array();
-	
+
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array();
+	$numbers_prev = array(); foreach ($rows as $row) {
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6);
 
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6);
-		
-		for($number = 4;$number <= 36;$number++){
+		for ($number = 4; $number <= 36; $number++) {
 			// Любой из выпавших номеров кратен 4 (0 не кратное)
-			calculate_case(function($nums) use($number) { $count = count($nums); for($i=0;$i<$count;$i++){ if($nums[$i] != 0 && $nums[$i] % $number == 0){ return true; }}return false;},$numbers,$numbers_prev,$array_res['ANY_DIV_'.$number]); 
+			calculate_case(function ($nums) use ($number) {
+				$count = count($nums);
+				for ($i = 0; $i < $count; $i++) {
+					if ($nums[$i] != 0 && $nums[$i] % $number == 0) {
+						return true;
+					}
+				}return false;
+			}, $numbers, $numbers_prev, $array_res['ANY_DIV_' . $number]);
 		}
 
 		// Наименьший выпавший номер Чет
-		calculate_case(function($nums){ return (min($nums) %2) ==0; },$numbers,$numbers_prev,$array_res['MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
 
 		// Наибольший выпавший номер Чет
-		calculate_case(function($nums){ return max($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return max($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
 		// Первый номер Больше последнего
-		calculate_case(function($nums) { return $nums[0] > end($nums); },$numbers,$numbers_prev,$array_res['FIRST_GT_LAST']);
+		calculate_case(function ($nums) {
+			return $nums[0] > end($nums);
+		}, $numbers, $numbers_prev, $array_res['FIRST_GT_LAST']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) + min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_EVEN']);
 
-		for($number = 1;$number<=6;$number++){
+		for ($number = 1; $number <= 6; $number++) {
 			// $number-й номер Чет
-			calculate_case(function($nums) use($number) { return $nums[$number-1] %2 == 0; },$numbers,$numbers_prev,$array_res['NUM_'.$number.'_EVEN']);
+			calculate_case(function ($nums) use ($number) {
+				return $nums[$number - 1] % 2 == 0;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_EVEN']);
 		}
 
-		for($number = 1;$number<=6;$number++){
+		for ($number = 1; $number <= 6; $number++) {
 			// $number-й номер больше 18.5
-			calculate_case(function($nums) use($number) { return $nums[$number-1] > 18.5 ; },$numbers,$numbers_prev,$array_res['NUM_'.$number.'_GT_18.5']);
+			calculate_case(function ($nums) use ($number) {
+				return $nums[$number - 1] > 18.5;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_GT_18.5']);
 		}
 
-		for($number = 1;$number <=9;$number++){
+		for ($number = 1; $number <= 9; $number++) {
 			// Наименьший выпавший номер Больше ($number + 0.5)
-			calculate_case(function($nums) use($number) {return min($nums) > ($number + 0.5);},$numbers,$numbers_prev,$array_res['MIN_GT_'.$number.'.5']);
-		}
-		
-		for($number = 27;$number <= 35;$number++){
-			// Наибольший выпавший номер Больше ($number + 0.5)
-			calculate_case(function($nums) use($number) {return max($nums) > ($number+0.5);}, $numbers,$numbers_prev,$array_res['MAX_GT_'.$number.'.5']);
-		}
-		
-		for($number = 0;$number<=6;$number++) {
-			// Количество выпавших НЕчетных номеров Ровно 0
-			calculate_case(function($nums) use($number) {$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd == $number;},$numbers,$numbers_prev,$array_res['ODD_EQ_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				return min($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['MIN_GT_' . $number . '.5']);
 		}
 
-		
-		for($number = 0;$number<=6;$number++) {
-			// Количество выпавших НЕчетных номеров Ровно 0
-			calculate_case(function($nums) use($number) {$odd = count(array_filter($nums,function($num){return $num %2 ==0;})); return $odd == $number;},$numbers,$numbers_prev,$array_res['EVEN_EQ_'.$number]);
+		for ($number = 27; $number <= 35; $number++) {
+			// Наибольший выпавший номер Больше ($number + 0.5)
+			calculate_case(function ($nums) use ($number) {
+				return max($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['MAX_GT_' . $number . '.5']);
 		}
-		
+
+		for ($number = 0; $number <= 6; $number++) {
+			// Количество выпавших НЕчетных номеров Ровно 0
+			calculate_case(function ($nums) use ($number) {
+				$odd = count(array_filter($nums, function ($num) {
+					return $num % 2 != 0;
+				}));
+				return $odd == $number;
+			}, $numbers, $numbers_prev, $array_res['ODD_EQ_' . $number]);
+		}
+
+
+		for ($number = 0; $number <= 6; $number++) {
+			// Количество выпавших НЕчетных номеров Ровно 0
+			calculate_case(function ($nums) use ($number) {
+				$odd = count(array_filter($nums, function ($num) {
+					return $num % 2 == 0;
+				}));
+				return $odd == $number;
+			}, $numbers, $numbers_prev, $array_res['EVEN_EQ_' . $number]);
+		}
+
 		// Количество выпавших номеров от 1 до 10 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=1 && $num <= 10;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_1_10_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 10;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_10_EQ_2']);
 
 		// Количество выпавших номеров от 1 до 12 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=1 && $num <= 12;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_1_12_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 12;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_12_EQ_2']);
 
 		// Количество выпавших номеров от 1 до 18 Ровно 3
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=1 && $num <= 18;});return count($filtered) == 3;},$numbers,$numbers_prev,$array_res['COUNT_1_18_EQ_3']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 18;
+			});
+			return count($filtered) == 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_18_EQ_3']);
 
 		// Количество выпавших номеров от 11 до 20 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=11 && $num <= 20;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_11_20_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 11 && $num <= 20;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_11_20_EQ_2']);
 
 		// Количество выпавших номеров от 13 до 24 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=13 && $num <= 24;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_13_24_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 13 && $num <= 24;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_13_24_EQ_2']);
 
 		// Количество выпавших номеров от 19 до 36 Ровно 3
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=19 && $num <= 36;});return count($filtered) == 3;},$numbers,$numbers_prev,$array_res['COUNT_19_36_EQ_3']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 19 && $num <= 36;
+			});
+			return count($filtered) == 3;
+		}, $numbers, $numbers_prev, $array_res['COUNT_19_36_EQ_3']);
 
 		// Количество выпавших номеров от 21 до 30 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=21 && $num <= 30;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_21_30_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 21 && $num <= 30;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_21_30_EQ_2']);
 
 		// Количество выпавших номеров от 25 до 36 Ровно 2
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=25 && $num <= 36;});return count($filtered) == 2;},$numbers,$numbers_prev,$array_res['COUNT_25_36_EQ_2']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 25 && $num <= 36;
+			});
+			return count($filtered) == 2;
+		}, $numbers, $numbers_prev, $array_res['COUNT_25_36_EQ_2']);
 
 		// Количество выпавших номеров от 31 до 36 Ровно 1
-		calculate_case(function($nums){$filtered = array_filter($nums,function($num){return $num >=31 && $num <= 36;});return count($filtered) == 1;},$numbers,$numbers_prev,$array_res['COUNT_31_36_EQ_1']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num >= 31 && $num <= 36;
+			});
+			return count($filtered) == 1;
+		}, $numbers, $numbers_prev, $array_res['COUNT_31_36_EQ_1']);
 
-		
+
 		$numbers_prev = $numbers;
 	}
 
@@ -6486,9 +8199,9 @@ function get_6_36_for_gamers()
 	wp_die();
 }
 
- 
 
-add_action('wp_ajax_insert_rocketbingo_for_gamers','insert_from_table_rocketbingo_for_gamers');
+
+add_action('wp_ajax_insert_rocketbingo_for_gamers', 'insert_from_table_rocketbingo_for_gamers');
 add_action('wp_ajax_nopriv_insert_rocketbingo_for_gamers', 'insert_from_table_rocketbingo_for_gamers');
 
 
@@ -6504,7 +8217,7 @@ function insert_from_table_rocketbingo_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_rocketbingo_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_rocketbingo_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22,NUMBER23,NUMBER24,NUMBER25,NUMBER26,NUMBER27,NUMBER28,NUMBER29,NUMBER30,NUMBER31,NUMBER32,NUMBER33,NUMBER34,NUMBER35) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5]. ','.$item->numbers[6]. ','.$item->numbers[7]. ','.$item->numbers[8]. ','.$item->numbers[9]. ','.$item->numbers[10]. ','.$item->numbers[11]. ','.$item->numbers[12]. ','.$item->numbers[13]. ','.$item->numbers[14]. ','.$item->numbers[15]. ','.$item->numbers[16]. ','.$item->numbers[17]. ','.$item->numbers[18]. ','.$item->numbers[19]. ','.$item->numbers[20]. ','.$item->numbers[21]. ','.$item->numbers[22]. ','.$item->numbers[23]. ','.$item->numbers[24]. ','.$item->numbers[25]. ','.$item->numbers[26]. ','.$item->numbers[27]. ','.$item->numbers[28]. ','.$item->numbers[29]. ','.$item->numbers[30]. ','.$item->numbers[31]. ','.$item->numbers[32]. ','.$item->numbers[33]. ','.$item->numbers[34] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_rocketbingo_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22,NUMBER23,NUMBER24,NUMBER25,NUMBER26,NUMBER27,NUMBER28,NUMBER29,NUMBER30,NUMBER31,NUMBER32,NUMBER33,NUMBER34,NUMBER35) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19] . ',' . $item->numbers[20] . ',' . $item->numbers[21] . ',' . $item->numbers[22] . ',' . $item->numbers[23] . ',' . $item->numbers[24] . ',' . $item->numbers[25] . ',' . $item->numbers[26] . ',' . $item->numbers[27] . ',' . $item->numbers[28] . ',' . $item->numbers[29] . ',' . $item->numbers[30] . ',' . $item->numbers[31] . ',' . $item->numbers[32] . ',' . $item->numbers[33] . ',' . $item->numbers[34] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -6512,8 +8225,8 @@ function insert_from_table_rocketbingo_for_gamers()
 }
 
 
-add_action('wp_ajax_get_rocketbingo_for_gamers','get_rocketbingo_for_gamers');
-add_action('wp_ajax_nopriv_get_rocketbingo_for_gamers','get_rocketbingo_for_gamers');
+add_action('wp_ajax_get_rocketbingo_for_gamers', 'get_rocketbingo_for_gamers');
+add_action('wp_ajax_nopriv_get_rocketbingo_for_gamers', 'get_rocketbingo_for_gamers');
 
 function get_rocketbingo_for_gamers()
 {
@@ -6709,195 +8422,424 @@ function get_rocketbingo_for_gamers()
 	);
 
 	$array_res = array();
-	
+
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array();
-
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6,$row->NUMBER7,$row->NUMBER8,$row->NUMBER9,$row->NUMBER10,$row->NUMBER11,$row->NUMBER12,$row->NUMBER13,$row->NUMBER14,$row->NUMBER15,$row->NUMBER16,$row->NUMBER17,$row->NUMBER18,$row->NUMBER19,$row->NUMBER20,$row->NUMBER21,$row->NUMBER22,$row->NUMBER23,$row->NUMBER24,$row->NUMBER25,$row->NUMBER26,$row->NUMBER27,$row->NUMBER28,$row->NUMBER29,$row->NUMBER30,$row->NUMBER31,$row->NUMBER32,$row->NUMBER33,$row->NUMBER34,$row->NUMBER35);
-		for($i=1;$i<=35;$i++){
+	$numbers_prev = array(); foreach ($rows as $row) {
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15, $row->NUMBER16, $row->NUMBER17, $row->NUMBER18, $row->NUMBER19, $row->NUMBER20, $row->NUMBER21, $row->NUMBER22, $row->NUMBER23, $row->NUMBER24, $row->NUMBER25, $row->NUMBER26, $row->NUMBER27, $row->NUMBER28, $row->NUMBER29, $row->NUMBER30, $row->NUMBER31, $row->NUMBER32, $row->NUMBER33, $row->NUMBER34, $row->NUMBER35);
+		for ($i = 1; $i <= 35; $i++) {
 			// Выпадет номер $i
-			calculate_case(function($nums) use($i) { return in_array($i,$nums); },$numbers,$numbers_prev,$array_res["NUM_$i"]);
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res["NUM_$i"]);
 		}
 
-		for($i=1;$i<=35;$i++){
+		for ($i = 1; $i <= 35; $i++) {
 			// $i-й номер больше 37.5
-			calculate_case(function($nums) use ($i) { return $nums[$i-1] > 37.5 ; },$numbers,$numbers_prev,$array_res["NUM_" .$i. "_GT_37.5"]);
+			calculate_case(function ($nums) use ($i) {
+				return $nums[$i - 1] > 37.5;
+			}, $numbers, $numbers_prev, $array_res["NUM_" . $i . "_GT_37.5"]);
 		}
 
-		for($i=1;$i<=35;$i++){
+		for ($i = 1; $i <= 35; $i++) {
 			// $i-й номер Чет
-			calculate_case(function($nums){ return $nums[1-1] %2 == 0; },$numbers,$numbers_prev,$array_res["NUM_" .$i. "_EVEN"]);	
+			calculate_case(function ($nums) {
+				return $nums[1 - 1] % 2 == 0;
+			}, $numbers, $numbers_prev, $array_res["NUM_" . $i . "_EVEN"]);
 		}
 
-		for($number = 1326;$number<=1330;$number++){
+		for ($number = 1326; $number <= 1330; $number++) {
 			// Сумма всех выпавших номеров Больше $number + 0.5
-			calculate_case(function($nums) use($number) {return array_sum($nums) > ($number + 0.5);},$numbers,$numbers_prev,$array_res['SUM_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return array_sum($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['SUM_GT_' . $number . '.5']);
 		}
 
 		// Сумма всех выпавших номеров Чет
-		
-		calculate_case(function($nums){ return (array_sum($nums) %2) == 0;},$numbers,$numbers_prev,$array_res['SUM_EVEN']);
+
+		calculate_case(function ($nums) {
+			return (array_sum($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN']);
 
 		// Сумма всех выпавших Четных номеров Больше 648.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 648.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_648.5']);
-		for($number = 650;$number<=653;$number++){
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 648.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_648.5']);
+		for ($number = 650; $number <= 653; $number++) {
 			// Сумма всех выпавших Четных номеров Больше 650.5
-			calculate_case(function($nums) use($number) { $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > ($number + 0.5); },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				$filtered = array_filter($nums, function ($num) {
+					return $num % 2 == 0;
+				});
+				return array_sum($filtered) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_' . $number . '.5']);
 		}
 
-		for($number = 672;$number<=676;$number++){
+		for ($number = 672; $number <= 676; $number++) {
 			// Сумма всех выпавших Нечетных номеров Больше $number+0.5
-			calculate_case(function($nums) use($number) {$filtered = array_filter($nums,function($num){return $num %2!=0;});return count($filtered) > ( $number + 0.5 );},$numbers,$numbers_prev,$array_res['COUNT_ODD_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				$filtered = array_filter($nums, function ($num) {
+					return $num % 2 != 0;
+				});
+				return count($filtered) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['COUNT_ODD_GT_' . $number . '.5']);
 		}
 
 		// Наименьший выпавший номер Больше 1.5
-		calculate_case(function($nums){return min($nums) > 1.5;},$numbers,$numbers_prev,$array_res['MIN_GT_1.5']);
+		calculate_case(function ($nums) {
+			return min($nums) > 1.5;
+		}, $numbers, $numbers_prev, $array_res['MIN_GT_1.5']);
 
 		// Наименьший выпавший номер Больше 2.5
-		calculate_case(function($nums){return min($nums) > 2.5;},$numbers,$numbers_prev,$array_res['MIN_GT_2.5']);
+		calculate_case(function ($nums) {
+			return min($nums) > 2.5;
+		}, $numbers, $numbers_prev, $array_res['MIN_GT_2.5']);
 
 		// Наименьший выпавший номер Чет
-		calculate_case(function($nums){ return (min($nums) %2) ==0; },$numbers,$numbers_prev,$array_res['MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
 
 		// Наибольший выпавший номер Больше 73.5
-		calculate_case(function($nums){return max($nums) > 73.5;},$numbers,$numbers_prev,$array_res['MAX_GT_73.5']);
+		calculate_case(function ($nums) {
+			return max($nums) > 73.5;
+		}, $numbers, $numbers_prev, $array_res['MAX_GT_73.5']);
 
 		// Наибольший выпавший номер Больше 74.5
-		calculate_case(function($nums){return max($nums) > 74.5;},$numbers,$numbers_prev,$array_res['MAX_GT_74.5']);
+		calculate_case(function ($nums) {
+			return max($nums) > 74.5;
+		}, $numbers, $numbers_prev, $array_res['MAX_GT_74.5']);
 
 		// Наибольший выпавший номер Чет
-		calculate_case(function($nums){ return max($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return max($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
 		// Первый выпавший номер Чет
-		calculate_case(function($nums){return $nums[0] %2==0;},$numbers,$numbers_prev,$array_res['FIRST_EVEN']);
+		calculate_case(function ($nums) {
+			return $nums[0] % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['FIRST_EVEN']);
 
 		// Последний выпавший номер Чет
-		calculate_case(function($nums){ return end($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['LAST_EVEN']);
+		calculate_case(function ($nums) {
+			return end($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['LAST_EVEN']);
 
 		// Четных номеров выпадет больше, чем НЕчетных
-		calculate_case(function($nums){$even = count(array_filter($nums,function($num){ return $num %2 != 0;})); $odd  = count(array_filter($nums,function($num){ return $num %2 != 0;}));return $even > $odd;},$numbers, $numbers_prev, $array_res['EVEN_GT_ODD']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['EVEN_GT_ODD']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) + min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_EVEN']);
 
 		// Разность наибольшего и наименьшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) - min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_EVEN']);
 
-		for($number = 69;$number<=73;$number++){
+		for ($number = 69; $number <= 73; $number++) {
 			// Разность наибольшего и наименьшего из выпавших номеров Больше 69.5
-			calculate_case(function($nums) use($number) {return (max($nums) - min($nums)) > ($number + 0.5);},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return (max($nums) - min($nums)) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_' . $number . '.5']);
 		}
 
 		// Любой из выпавших номеров кратен 25
-		calculate_case(function($nums){$count = count($nums); for($i=0;$i<$count;$i++){if($nums[$i] % 25 == 0){ return true; }}return false;},$numbers,$numbers_prev,$array_res['ANY_DIV_25']);
+		calculate_case(function ($nums) {
+			$count = count($nums);
+			for ($i = 0; $i < $count; $i++) {
+				if ($nums[$i] % 25 == 0) {
+					return true;
+				}
+			}return false;
+		}, $numbers, $numbers_prev, $array_res['ANY_DIV_25']);
 
 		// Любой из выпавших номеров кратен 30
-		calculate_case(function($nums){$count = count($nums); for($i=0;$i<$count;$i++){if($nums[$i] % 30 == 0){ return true; }}return false;},$numbers,$numbers_prev,$array_res['ANY_DIV_30']);
+		calculate_case(function ($nums) {
+			$count = count($nums);
+			for ($i = 0; $i < $count; $i++) {
+				if ($nums[$i] % 30 == 0) {
+					return true;
+				}
+			}return false;
+		}, $numbers, $numbers_prev, $array_res['ANY_DIV_30']);
 
 		// Первый номер Больше последнего
-		calculate_case(function($nums) { return $nums[0] > end($nums); },$numbers,$numbers_prev,$array_res['FIRST_GT_LAST']);
+		calculate_case(function ($nums) {
+			return $nums[0] > end($nums);
+		}, $numbers, $numbers_prev, $array_res['FIRST_GT_LAST']);
 
 		// Количество выпавших номеров от 1 до 25 больше 11.5
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=25;})); return $count > 11.5; },$numbers,$numbers_prev,$array_res['COUNT_1_25_GT_11.5']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 25;
+			}));
+			return $count > 11.5;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_25_GT_11.5']);
 
 		// Количество выпавших номеров от 26 до 50 больше 11.5
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=26 && $num <=50;})); return $count > 11.5; },$numbers,$numbers_prev,$array_res['COUNT_26_50_GT_11.5']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 26 && $num <= 50;
+			}));
+			return $count > 11.5;
+		}, $numbers, $numbers_prev, $array_res['COUNT_26_50_GT_11.5']);
 
 		// Количество выпавших номеров от 51 до 75 больше 11.5
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=51 && $num <=75;})); return $count > 11.5; },$numbers,$numbers_prev,$array_res['COUNT_51_75_GT_11.5']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 51 && $num <= 75;
+			}));
+			return $count > 11.5;
+		}, $numbers, $numbers_prev, $array_res['COUNT_51_75_GT_11.5']);
 
 		// Количество выпавших Нечетных номеров меньше 18
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2!=0; })); return $filtered < 18; },$numbers,$numbers_prev,$array_res['COUNT_ODD_LT_18']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $filtered < 18;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_LT_18']);
 
 		// Количество выпавших Нечетных номеров ровно 18
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2!=0; })); return $filtered == 18; },$numbers,$numbers_prev,$array_res['COUNT_ODD_EQ_18']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $filtered == 18;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_EQ_18']);
 
 		// Количество выпавших Нечетных номеров больше 18
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2!=0; })); return $filtered > 18; },$numbers,$numbers_prev,$array_res['COUNT_ODD_GT_18']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $filtered > 18;
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_GT_18']);
 
 		// Количество выпавших Четных номеров меньше 18
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2 == 0; })); return $filtered < 18; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_LT_18']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $filtered < 18;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_LT_18']);
 
 		// Количество выпавших Четных номеров ровно 18
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2 == 0; })); return $filtered == 18; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_EQ_18']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $filtered == 18;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_EQ_18']);
 
 		// Количество выпавших Четных номеров больше 18
-		calculate_case(function($nums) { $filtered = count(array_filter($nums,function($num){ return $num %2==0; })); return $filtered > 18; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_GT_18']);
+		calculate_case(function ($nums) {
+			$filtered = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			return $filtered > 18;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_GT_18']);
 
 		// Количество выпавших номеров от 1 до 15 меньше 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=15;})); return $count < 7; },$numbers,$numbers_prev,$array_res['COUNT_1_15_LT_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 15;
+			}));
+			return $count < 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_15_LT_7']);
 
 		// Количество выпавших номеров от 1 до 15 ровно 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=15;})); return $count == 7; },$numbers,$numbers_prev,$array_res['COUNT_1_15_EQ_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 15;
+			}));
+			return $count == 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_15_EQ_7']);
 
 		// Количество выпавших номеров от 1 до 15 больше 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=15;})); return $count > 7; },$numbers,$numbers_prev,$array_res['COUNT_1_15_GT_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 15;
+			}));
+			return $count > 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_15_GT_7']);
 
 		// Количество выпавших номеров от 1 до 38 меньше 17
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=38;})); return $count < 17; },$numbers,$numbers_prev,$array_res['COUNT_1_38_LT_17']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 38;
+			}));
+			return $count < 17;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_38_LT_17']);
 
 		// Количество выпавших номеров от 1 до 38 ровно 17
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=38;})); return $count == 17; },$numbers,$numbers_prev,$array_res['COUNT_1_38_EQ_17']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 38;
+			}));
+			return $count == 17;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_38_EQ_17']);
 
 		// Количество выпавших номеров от 1 до 38 больше 17
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=1 && $num <=38;})); return $count > 17; },$numbers,$numbers_prev,$array_res['COUNT_1_38_GT_17']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 1 && $num <= 38;
+			}));
+			return $count > 17;
+		}, $numbers, $numbers_prev, $array_res['COUNT_1_38_GT_17']);
 
 		// Количество выпавших номеров от 16 до 30 меньше 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=16 && $num <=30;})); return $count < 7; },$numbers,$numbers_prev,$array_res['COUNT_16_30_LT_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 16 && $num <= 30;
+			}));
+			return $count < 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_16_30_LT_7']);
 
 		// Количество выпавших номеров от 16 до 30 ровно 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=16 && $num <=30;})); return $count == 7; },$numbers,$numbers_prev,$array_res['COUNT_16_30_EQ_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 16 && $num <= 30;
+			}));
+			return $count == 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_16_30_EQ_7']);
 
 		// Количество выпавших номеров от 16 до 30 больше 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=16 && $num <=30;})); return $count > 7; },$numbers,$numbers_prev,$array_res['COUNT_16_30_GT_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 16 && $num <= 30;
+			}));
+			return $count > 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_16_30_GT_7']);
 
 		// Количество выпавших номеров от 31 до 45 меньше 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=31 && $num <=45;})); return $count < 7; },$numbers,$numbers_prev,$array_res['COUNT_31_45_LT_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 31 && $num <= 45;
+			}));
+			return $count < 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_31_45_LT_7']);
 
 		// Количество выпавших номеров от 31 до 45 ровно 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=31 && $num <=45;})); return $count == 7; },$numbers,$numbers_prev,$array_res['COUNT_31_45_EQ_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 31 && $num <= 45;
+			}));
+			return $count == 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_31_45_EQ_7']);
 
 		// Количество выпавших номеров от 31 до 45 больше 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=31 && $num <=45;})); return $count > 7; },$numbers,$numbers_prev,$array_res['COUNT_31_45_GT_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 31 && $num <= 45;
+			}));
+			return $count > 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_31_45_GT_7']);
 
 		// Количество выпавших номеров от 39 до 75 меньше 17
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=39 && $num <=75;})); return $count < 17; },$numbers,$numbers_prev,$array_res['COUNT_39_75_LT_17']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 39 && $num <= 75;
+			}));
+			return $count < 17;
+		}, $numbers, $numbers_prev, $array_res['COUNT_39_75_LT_17']);
 
 		// Количество выпавших номеров от 39 до 75 ровно 17
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=39 && $num <=75;})); return $count == 17; },$numbers,$numbers_prev,$array_res['COUNT_39_75_EQ_17']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 39 && $num <= 75;
+			}));
+			return $count == 17;
+		}, $numbers, $numbers_prev, $array_res['COUNT_39_75_EQ_17']);
 
 		// Количество выпавших номеров от 39 до 75 больше 17
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=39 && $num <=75;})); return $count > 17; },$numbers,$numbers_prev,$array_res['COUNT_39_75_GT_17']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 39 && $num <= 75;
+			}));
+			return $count > 17;
+		}, $numbers, $numbers_prev, $array_res['COUNT_39_75_GT_17']);
 
 		// Количество выпавших номеров от 46 до 60 меньше 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=46 && $num <=60;})); return $count < 7; },$numbers,$numbers_prev,$array_res['COUNT_46_60_LT_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 46 && $num <= 60;
+			}));
+			return $count < 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_46_60_LT_7']);
 
 		// Количество выпавших номеров от 46 до 60 ровно 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=46 && $num <=60;})); return $count == 7; },$numbers,$numbers_prev,$array_res['COUNT_46_60_EQ_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 46 && $num <= 60;
+			}));
+			return $count == 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_46_60_EQ_7']);
 
 		// Количество выпавших номеров от 46 до 60 больше 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=46 && $num <=60;})); return $count > 7; },$numbers,$numbers_prev,$array_res['COUNT_46_60_GT_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 46 && $num <= 60;
+			}));
+			return $count > 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_46_60_GT_7']);
 
 		// Количество выпавших номеров от 61 до 75 меньше 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=61 && $num <=75;})); return $count < 7; },$numbers,$numbers_prev,$array_res['COUNT_61_75_LT_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 61 && $num <= 75;
+			}));
+			return $count < 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_61_75_LT_7']);
 
 		// Количество выпавших номеров от 61 до 75 ровно 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=61 && $num <=75;})); return $count == 7; },$numbers,$numbers_prev,$array_res['COUNT_61_75_EQ_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 61 && $num <= 75;
+			}));
+			return $count == 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_61_75_EQ_7']);
 
 		// Количество выпавших номеров от 61 до 75 больше 7
-		calculate_case(function($nums){ $count = count(array_filter($nums,function($num){ return $num >=61 && $num <=75;})); return $count > 7; },$numbers,$numbers_prev,$array_res['COUNT_61_75_GT_7']);
+		calculate_case(function ($nums) {
+			$count = count(array_filter($nums, function ($num) {
+				return $num >= 61 && $num <= 75;
+			}));
+			return $count > 7;
+		}, $numbers, $numbers_prev, $array_res['COUNT_61_75_GT_7']);
 
-		for($number = 14;$number <=21;$number++){
+		for ($number = 14; $number <= 21; $number++) {
 			// Количество выпавших НЕчетных номеров Ровно $number
-			calculate_case(function($nums) use($number) {$odd = count(array_filter($nums,function($num) { return $num %2 !=0;})); return $odd == $number;},$numbers,$numbers_prev,$array_res['ODD_EQ_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$odd = count(array_filter($nums, function ($num) {
+					return $num % 2 != 0;
+				}));
+				return $odd == $number;
+			}, $numbers, $numbers_prev, $array_res['ODD_EQ_' . $number]);
 		}
 
-		for($number=14;$number<=21;$number++){
+		for ($number = 14; $number <= 21; $number++) {
 			// Количество выпавших Четных номеров Ровно $number
-			calculate_case(function($nums) use($number) {$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even == $number;},$numbers,$numbers_prev,$array_res['EVEN_EQ_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$even = count(array_filter($nums, function ($num) {
+					return $num % 2 == 0;
+				}));
+				return $even == $number;
+			}, $numbers, $numbers_prev, $array_res['EVEN_EQ_' . $number]);
 		}
 
 		$numbers_prev = $numbers;
@@ -7070,17 +9012,17 @@ function get_7_49_for_gamers()
 	$numbers_prev = array(); foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7);
 
-		for($number = 4;$number<=49;$number++){
+		for ($number = 4; $number <= 49; $number++) {
 			// Любой из выпавших номеров кратен $number (0 не кратное)
-			calculate_case(function ($nums) use($number) {
+			calculate_case(function ($nums) use ($number) {
 				$count = count($nums);
 				for ($i = 0; $i < $count; $i++) {
-					if ($nums[$i] ==0 && $nums[$i] % $number == 0) {
+					if ($nums[$i] != 0 && ($nums[$i] % $number) == 0) {
 						return true;
 					}
 				}
 				return false;
-			}, $numbers, $numbers_prev, $array_res['ANY_DIV_'.$number]);
+			}, $numbers, $numbers_prev, $array_res['ANY_DIV_' . $number]);
 		}
 
 
@@ -7095,39 +9037,41 @@ function get_7_49_for_gamers()
 		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
 		// Первый номер Больше последнего
-		calculate_case(function($nums){ return $nums[0] > end($nums); },$numbers,$numbers_prev,$array_res['FIRST_GT_LAST']);
+		calculate_case(function ($nums) {
+			return $nums[0] > end($nums);
+		}, $numbers, $numbers_prev, $array_res['FIRST_GT_LAST']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Чет
 		calculate_case(function ($nums) {
 			return (max($nums) + min($nums)) % 2 == 0;
 		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_EVEN']);
 
-		for($number = 1;$number <=7;$number++){
+		for ($number = 1; $number <= 7; $number++) {
 			// $number-й номер больше 25.5
-			calculate_case(function ($nums) use($number) {
+			calculate_case(function ($nums) use ($number) {
 				return $nums[$number - 1] > 25.5;
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$number.'_GT_25.5']);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_GT_25.5']);
 		}
-		
-		for($number = 1;$number<=7;$number++){
+
+		for ($number = 1; $number <= 7; $number++) {
 			// $number-й номер Чет
-			calculate_case(function ($nums) use($number) {
+			calculate_case(function ($nums) use ($number) {
 				return $nums[$number - 1] % 2 == 0;
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$number.'_EVEN']);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_EVEN']);
 		}
 
-		for($number = 1; $number<=12;$number++){
+		for ($number = 1; $number <= 12; $number++) {
 			// Наименьший выпавший номер Больше $number+0.5
-			calculate_case(function ($nums) use($number){
-				return min($nums) > ($number+0.5);
-			}, $numbers, $numbers_prev, $array_res['MIN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return min($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['MIN_GT_' . $number . '.5']);
 		}
 
-		for($number = 37;$number<=48;$number++){
+		for ($number = 37; $number <= 48; $number++) {
 			// Наибольший выпавший номер Больше 37.5
-			calculate_case(function ($nums) use($number) {
+			calculate_case(function ($nums) use ($number) {
 				return max($nums) > ($number + 0.5);
-			}, $numbers, $numbers_prev, $array_res['MAX_GT_'.$number.'.5']);
+			}, $numbers, $numbers_prev, $array_res['MAX_GT_' . $number . '.5']);
 		}
 
 		// Количество выпавших номеров от 1 до 10 Ровно 1
@@ -7262,9 +9206,9 @@ function get_7_49_for_gamers()
 			return count($filtered) == 1;
 		}, $numbers, $numbers_prev, $array_res['COUNT_41_49_EQ_1']);
 
-		for($number = 0;$number <=7;$number++){
+		for ($number = 0; $number <= 7; $number++) {
 			// Количество выпавших НЕчетных номеров Ровно $number
-			calculate_case(function ($nums) use($number) {
+			calculate_case(function ($nums) use ($number) {
 				$odd = count(
 					array_filter(
 						$nums,
@@ -7274,12 +9218,12 @@ function get_7_49_for_gamers()
 					)
 				);
 				return $odd == $number;
-			}, $numbers, $numbers_prev, $array_res['ODD_EQ_'.$number]);
+			}, $numbers, $numbers_prev, $array_res['ODD_EQ_' . $number]);
 		}
 
-		for($number = 0;$number<=7;$number++){
+		for ($number = 0; $number <= 7; $number++) {
 			// Количество выпавших Четных номеров Ровно $number
-			calculate_case(function ($nums) use($number) {
+			calculate_case(function ($nums) use ($number) {
 				$even = count(
 					array_filter(
 						$nums,
@@ -7289,7 +9233,7 @@ function get_7_49_for_gamers()
 					)
 				);
 				return $even == $number;
-			}, $numbers, $numbers_prev, $array_res['EVEN_EQ_'.$number]);
+			}, $numbers, $numbers_prev, $array_res['EVEN_EQ_' . $number]);
 
 		}
 
@@ -7451,11 +9395,13 @@ function get_bingo_75_for_gamers()
 		$array_res[$key] = prepare_table_values();
 
 	$numbers_prev = array(); foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3);
+		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3);
+		$numbers = filter_numbers(range(1, 75), $array);
 
-		for($number = 8;$number<=12;$number ++) {
+
+		for ($number = 8; $number <= 12; $number++) {
 			// Любой из выпавших номеров кратен 8 (0 не кратное)
-			calculate_case(function ($nums) use($number) {
+			calculate_case(function ($nums) use ($number) {
 				$count = count($nums);
 				for ($i = 0; $i < $count; $i++) {
 					if ($nums[$i] != 0 && ($nums[$i] % $number) == 0) {
@@ -7463,9 +9409,9 @@ function get_bingo_75_for_gamers()
 					}
 				}
 				return false;
-			}, $numbers, $numbers_prev, $array_res['ANY_DIV_'.$number]);
+			}, $numbers, $numbers_prev, $array_res['ANY_DIV_' . $number]);
 		}
-		
+
 		// Наименьший выпавший номер Чет
 		calculate_case(function ($nums) {
 			return (min($nums) % 2) == 0;
@@ -7507,30 +9453,30 @@ function get_bingo_75_for_gamers()
 			return (max($nums) - min($nums)) % 2 == 0;
 		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_EVEN']);
 
-		for($number = 67;$number <=73;$number++){
+		for ($number = 67; $number <= 73; $number++) {
 			// Разность наибольшего и наименьшего из выпавших номеров Больше ($number+0.5)
-			calculate_case(function ($nums) use($number){
+			calculate_case(function ($nums) use ($number) {
 				return (max($nums) - min($nums)) > ($number + 0.5);
-			}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_'.$number.'.5']);
+			}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_' . $number . '.5']);
 		}
-		for($number = 1062;$number<=1066;$number++){
+		for ($number = 1062; $number <= 1066; $number++) {
 			// Сумма всех выпавших номеров Больше ($number+0.5)
-			calculate_case(function ($nums) use($number){
+			calculate_case(function ($nums) use ($number) {
 				return array_sum($nums) > ($number + 0.5);
-			}, $numbers, $numbers_prev, $array_res['SUM_GT_'.$number.'.5']);
+			}, $numbers, $numbers_prev, $array_res['SUM_GT_' . $number . '.5']);
 
 		}
 
-		for($number = 1;$number<=3;$number++){
+		for ($number = 1; $number <= 3; $number++) {
 			// Наименьший выпавший номер Больше 1.5
-			calculate_case(function ($nums) use($number) {
+			calculate_case(function ($nums) use ($number) {
 				return min($nums) > ($number + 0.5);
-			}, $numbers, $numbers_prev, $array_res['MIN_GT_'.$number.'.5']);
+			}, $numbers, $numbers_prev, $array_res['MIN_GT_' . $number . '.5']);
 		}
-		
-		for($number = 522;$number <=526;$number++){
+
+		for ($number = 522; $number <= 526; $number++) {
 			// Сумма всех выпавших четных номеров Больше ($number + 0.5)
-			calculate_case(function ($nums) use($number) {
+			calculate_case(function ($nums) use ($number) {
 				$filtered = array_filter(
 					$nums,
 					function ($num) {
@@ -7538,12 +9484,12 @@ function get_bingo_75_for_gamers()
 					}
 				);
 				return array_sum($filtered) > ($number + 0.5);
-			}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_'.$number.'.5']);
+			}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_' . $number . '.5']);
 		}
 
-		for($number = 536;$number<=540;$number++){
+		for ($number = 536; $number <= 540; $number++) {
 			// Сумма всех выпавших НЕчетных номеров Больше ($number+0.5)
-			calculate_case(function ($nums) use($number) {
+			calculate_case(function ($nums) use ($number) {
 				$filtered = array_filter(
 					$nums,
 					function ($num) {
@@ -7551,26 +9497,26 @@ function get_bingo_75_for_gamers()
 					}
 				);
 				return array_sum($filtered) > ($number + 0.5);
-			}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_'.$number.'.5']);
+			}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_' . $number . '.5']);
 		}
 
-		for($number = 1;$number<=28;$number++){
+		for ($number = 1; $number <= 28; $number++) {
 			// Выпадет номер $number
-			calculate_case(function ($nums) use($number){
+			calculate_case(function ($nums) use ($number) {
 				return in_array($number, $nums);
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$number]);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number]);
 		}
 
-		for($number=1;$number<=28;$number++){
+		for ($number = 1; $number <= 28; $number++) {
 			// $number-й номер Чет
-			calculate_case(function ($nums) use($number){
+			calculate_case(function ($nums) use ($number) {
 				return $nums[$number - 1] % 2 == 0;
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$number.'_EVEN']);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_EVEN']);
 		}
-		
-		for($number = 11;$number<=18;$number++){
+
+		for ($number = 11; $number <= 18; $number++) {
 			// Количество выпавших НЕчетных номеров Ровно $number
-			calculate_case(function ($nums) use($number){
+			calculate_case(function ($nums) use ($number) {
 				$odd = count(
 					array_filter(
 						$nums,
@@ -7580,12 +9526,12 @@ function get_bingo_75_for_gamers()
 					)
 				);
 				return $odd == $number;
-			}, $numbers, $numbers_prev, $array_res['ODD_EQ_'.$number]);
+			}, $numbers, $numbers_prev, $array_res['ODD_EQ_' . $number]);
 		}
 
-		for($number = 10;$number<=17;$number++){
+		for ($number = 10; $number <= 17; $number++) {
 			// Количество выпавших Четных номеров Ровно $number
-			calculate_case(function ($nums) use($number){
+			calculate_case(function ($nums) use ($number) {
 				$even = count(
 					array_filter(
 						$nums,
@@ -7595,7 +9541,7 @@ function get_bingo_75_for_gamers()
 					)
 				);
 				return $even == $number;
-			}, $numbers, $numbers_prev, $array_res['EVEN_EQ_'.$number]);
+			}, $numbers, $numbers_prev, $array_res['EVEN_EQ_' . $number]);
 		}
 
 		$numbers_prev = $numbers;
@@ -7611,7 +9557,7 @@ function get_bingo_75_for_gamers()
 
 
 
-add_action('wp_ajax_insert_velikolepnaya_8_for_gamers','insert_from_table_velikolepnaya_8_for_gamers');
+add_action('wp_ajax_insert_velikolepnaya_8_for_gamers', 'insert_from_table_velikolepnaya_8_for_gamers');
 add_action('wp_ajax_nopriv_insert_velikolepnaya_8_for_gamers', 'insert_from_table_velikolepnaya_8_for_gamers');
 
 
@@ -7627,7 +9573,7 @@ function insert_from_table_velikolepnaya_8_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_velikolepnaya_8_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_velikolepnaya_8_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5]. ','.$item->numbers[6]. ','.$item->numbers[7]. ','.$item->numbers[8] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_velikolepnaya_8_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -7635,8 +9581,8 @@ function insert_from_table_velikolepnaya_8_for_gamers()
 }
 
 
-add_action('wp_ajax_get_velikolepnaya_8_for_gamers','get_velikolepnaya_8_for_gamers');
-add_action('wp_ajax_nopriv_get_velikolepnaya_8_for_gamers','get_velikolepnaya_8_for_gamers');
+add_action('wp_ajax_get_velikolepnaya_8_for_gamers', 'get_velikolepnaya_8_for_gamers');
+add_action('wp_ajax_nopriv_get_velikolepnaya_8_for_gamers', 'get_velikolepnaya_8_for_gamers');
 
 function get_velikolepnaya_8_for_gamers()
 {
@@ -7690,7 +9636,6 @@ function get_velikolepnaya_8_for_gamers()
 		'NUM_6_EVEN',
 		'NUM_7_EVEN',
 		'NUM_8_EVEN',
-		'NUM_9_EVEN',
 		'DIFF_MAX_MIN_EVEN',
 		'DIFF_MAX_MIN_GT_15.5',
 		'DIFF_MAX_MIN_GT_16.5',
@@ -7719,86 +9664,142 @@ function get_velikolepnaya_8_for_gamers()
 	);
 
 	$array_res = array();
-	
+
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array();
+	$numbers_prev = array(); foreach ($rows as $row) {
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9);
 
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6,$row->NUMBER7,$row->NUMBER8,$row->NUMBER9);
-		
-		for($number = 1;$number <= 20;$number++){
+		for ($number = 1; $number <= 20; $number++) {
 			// Выпадет номер $number
-			calculate_case(function($nums) use($number) { return in_array($number,$nums); },$numbers,$numbers_prev,$array_res['NUM_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				return in_array($number, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number]);
 		}
-		
+
 		// Наименьший выпавший номер Чет
-		calculate_case(function($nums){ return (min($nums) %2) ==0; },$numbers,$numbers_prev,$array_res['MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
 
 		// Наибольший выпавший номер Чет
-		calculate_case(function($nums){ return max($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return max($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
 
-		for($number = 7;$number<=12;$number++){
-			if($number == 10 ) continue;
+		for ($number = 7; $number <= 12; $number++) {
+			if ($number == 10)
+				continue;
 			// Любой из выпавших номеров кратен 7 (0 не кратное)
-			calculate_case(function($nums) use($number) {$count = count($nums); for($i=0;$i<$count;$i++){if($nums[$i] != 0 && $nums[$i] % 7 == 0){ return true; }}return false;},$numbers,$numbers_prev,$array_res['ANY_DIV_'.$number]); 
+			calculate_case(function ($nums) use ($number) {
+				$count = count($nums);
+				for ($i = 0; $i < $count; $i++) {
+					if ($nums[$i] != 0 && $nums[$i] % 7 == 0) {
+						return true;
+					}
+				}return false;
+			}, $numbers, $numbers_prev, $array_res['ANY_DIV_' . $number]);
 		}
-		
+
 		// Четных номеров выпадет больше, чем НЕчетных
-		calculate_case(function($nums){ $even = count(array_filter($nums,function($num){ return $num %2==0;})); $odd = count(array_filter($nums,function($num){ return $num%2!=0; })); return $even > $odd; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_GT_COUNT_ODD']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_GT_COUNT_ODD']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) + min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_EVEN']);
 
 
-		for($number = 42;$number<=47;$number++){
-			if($number == 43) continue;
+		for ($number = 42; $number <= 47; $number++) {
+			if ($number == 43)
+				continue;
 			// Сумма всех выпавших Четных номеров Больше 42.5
-			calculate_case(function($nums) use($number) { $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > ($number+0.5); }, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				$filtered = array_filter($nums, function ($num) {
+					return $num % 2 == 0;
+				});
+				return array_sum($filtered) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_' . $number . '.5']);
 		}
 
-		for($number = 38;$number<=42;$number++){
+		for ($number = 38; $number <= 42; $number++) {
 			// Сумма всех выпавших НЕчетных номеров Больше 38.5
-			calculate_case(function($nums) use($number) {$filtered = array_filter($nums,function($num){return $num %2 != 0;}); return array_sum($filtered) > ($number+0.5);},$numbers,$numbers_prev,$array_res['SUM_ODD_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				$filtered = array_filter($nums, function ($num) {
+					return $num % 2 != 0;
+				});
+				return array_sum($filtered) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_' . $number . '.5']);
 		}
 
-		for($number = 1;$number<=9;$number++){
+		for ($number = 1; $number <= 8; $number++) {
 			// $number-й номер ЧЕТ
-			calculate_case(function($nums) use($number) { return $nums[$number-1] %2 == 0; },$numbers,$numbers_prev,$array_res['NUM_'.$number.'_EVEN']);
+			calculate_case(function ($nums) use ($number) {
+				return $nums[$number - 1] % 2 == 0;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_EVEN']);
 		}
 
 		// Разность наибольшего и наименьшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) - min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_EVEN']);
 
-
-		for($number = 15;$number<=18;$number++){
+		for ($number = 15; $number <= 18; $number++) {
 			// Разность наибольшего и наименьшего номеров Больше 15.5
-			calculate_case(function($nums) use($number) { return (max($nums) - min($nums)) > ($number+0.5); },$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return (max($nums) - min($nums)) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_' . $number . '.5']);
 		}
-		for($number = 84;$number<=88;$number++){
+		for ($number = 84; $number <= 88; $number++) {
 			// Сумма всех выпавших номеров Больше $number+0.5
-			calculate_case(function($nums) use($number) {return array_sum($nums) > ($number+0.5);},$numbers,$numbers_prev,$array_res['SUM_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return array_sum($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['SUM_GT_' . $number . '.5']);
 		}
 
 		// Наименьший выпавший номер Больше 1.5
-		calculate_case(function($nums){return min($nums) > 1.5;},$numbers,$numbers_prev,$array_res['MIN_GT_1.5']);
+		calculate_case(function ($nums) {
+			return min($nums) > 1.5;
+		}, $numbers, $numbers_prev, $array_res['MIN_GT_1.5']);
 
 		// Наибольший выпавший номер Больше 18.5
-		calculate_case(function($nums){return max($nums) > 18.5;},$numbers,$numbers_prev,$array_res['MAX_GT_18.5']);
+		calculate_case(function ($nums) {
+			return max($nums) > 18.5;
+		}, $numbers, $numbers_prev, $array_res['MAX_GT_18.5']);
 
 		// Наибольший выпавший номер Больше 19.5
-		calculate_case(function($nums){return max($nums) > 19.5;},$numbers,$numbers_prev,$array_res['MAX_GT_19.5']);
+		calculate_case(function ($nums) {
+			return max($nums) > 19.5;
+		}, $numbers, $numbers_prev, $array_res['MAX_GT_19.5']);
 
-		for($number = 2;$number <= 7;$number++){
+		for ($number = 2; $number <= 7; $number++) {
 			// Количество выпавших НЕчетных номеров Ровно 2
-			calculate_case(function($nums) use($number) {$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd == $number;},$numbers,$numbers_prev,$array_res['ODD_EQ_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$odd = count(array_filter($nums, function ($num) {
+					return $num % 2 != 0;
+				}));
+				return $odd == $number;
+			}, $numbers, $numbers_prev, $array_res['ODD_EQ_' . $number]);
 		}
 
-		for($number = 2;$number <= 7;$number++){
+		for ($number = 2; $number <= 7; $number++) {
 			// Количество выпавших Четных номеров Ровно 2
-			calculate_case(function($nums) use($number) {$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even == $number;},$numbers,$numbers_prev,$array_res['EVEN_EQ_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$even = count(array_filter($nums, function ($num) {
+					return $num % 2 == 0;
+				}));
+				return $even == $number;
+			}, $numbers, $numbers_prev, $array_res['EVEN_EQ_' . $number]);
 		}
 
 		$numbers_prev = $numbers;
@@ -7813,7 +9814,7 @@ function get_velikolepnaya_8_for_gamers()
 }
 
 
-add_action('wp_ajax_insert_lavina_prizov_for_gamers','insert_from_table_lavina_prizov_for_gamers');
+add_action('wp_ajax_insert_lavina_prizov_for_gamers', 'insert_from_table_lavina_prizov_for_gamers');
 add_action('wp_ajax_nopriv_insert_lavina_prizov_for_gamers', 'insert_from_table_lavina_prizov_for_gamers');
 
 
@@ -7829,7 +9830,7 @@ function insert_from_table_lavina_prizov_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_lavina_prizov_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_lavina_prizov_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8) VALUES(" . $item->number   . ','.$item->numbers[0]. ','.$item->numbers[1]. ','.$item->numbers[2]. ','.$item->numbers[3]. ','.$item->numbers[4]. ','.$item->numbers[5]. ','.$item->numbers[6]. ','.$item->numbers[7] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_lavina_prizov_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -7837,8 +9838,8 @@ function insert_from_table_lavina_prizov_for_gamers()
 }
 
 
-add_action('wp_ajax_get_lavina_prizov_for_gamers','get_lavina_prizov_for_gamers');
-add_action('wp_ajax_nopriv_get_lavina_prizov_for_gamers','get_lavina_prizov_for_gamers');
+add_action('wp_ajax_get_lavina_prizov_for_gamers', 'get_lavina_prizov_for_gamers');
+add_action('wp_ajax_nopriv_get_lavina_prizov_for_gamers', 'get_lavina_prizov_for_gamers');
 
 function get_lavina_prizov_for_gamers()
 {
@@ -7925,89 +9926,149 @@ function get_lavina_prizov_for_gamers()
 	);
 
 	$array_res = array();
-	
+
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array();
+	$numbers_prev = array(); foreach ($rows as $row) {
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
 
-	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1,$row->NUMBER2,$row->NUMBER3,$row->NUMBER4,$row->NUMBER5,$row->NUMBER6,$row->NUMBER7,$row->NUMBER8);
-		
-		for($number = 1;$number<=20;$number++){
+		for ($number = 1; $number <= 20; $number++) {
 			// Выпадет номер $number
-			calculate_case(function($nums) use($number) { return in_array($number,$nums); },$numbers,$numbers_prev,$array_res['NUM_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				return in_array($number, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number]);
 		}
 
 		// Наименьший выпавший номер Чет
-		calculate_case(function($nums){ return (min($nums) %2) ==0; },$numbers,$numbers_prev,$array_res['MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (min($nums) % 2) == 0;
+		}, $numbers, $numbers_prev, $array_res['MIN_EVEN']);
 
 		// Наибольший выпавший номер Чет
-		calculate_case(function($nums){ return max($nums) %2 == 0; },$numbers,$numbers_prev,$array_res['MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return max($nums) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['MAX_EVEN']);
 
-		for($number = 7;$number<=11;$number++){
+		for ($number = 7; $number <= 11; $number++) {
 			// Любой из выпавших номеров кратен 7 (0 не кратное)
-			calculate_case(function($nums) use($number) {$count = count($nums); for($i=0;$i<$count;$i++){if($nums[$i] != 0 && $nums[$i] % $number == 0){ return true; }}return false;},$numbers,$numbers_prev,$array_res['ANY_DIV_'.$number]); 
+			calculate_case(function ($nums) use ($number) {
+				$count = count($nums);
+				for ($i = 0; $i < $count; $i++) {
+					if ($nums[$i] != 0 && $nums[$i] % $number == 0) {
+						return true;
+					}
+				}return false;
+			}, $numbers, $numbers_prev, $array_res['ANY_DIV_' . $number]);
 		}
 
 		// Выпадут совпадающие номера на разных полях
-		calculate_case(function($nums){ return false;},$numbers,$numbers_prev,$array_res['ADJACENT_NUMBERS_DIFF_FIELDS']);
+		calculate_case(function ($nums) {
+			return false;
+		}, $numbers, $numbers_prev, $array_res['ADJACENT_NUMBERS_DIFF_FIELDS']);
 
-		for($number = 1;$number<=8;$number++){
+		for ($number = 1; $number <= 8; $number++) {
 			// $number-й номер ЧЕТ
-			calculate_case(function($nums) use($number) { return $nums[$number-1] %2 == 0; },$numbers,$numbers_prev,$array_res['NUM_'.$number.'_EVEN']);
+			calculate_case(function ($nums) use ($number) {
+				return $nums[$number - 1] % 2 == 0;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $number . '_EVEN']);
 		}
-		
+
 		// Четных номеров выпадет больше, чем НЕчетных
-		calculate_case(function($nums){ $even = count(array_filter($nums,function($num){ return $num %2==0;})); $odd = count(array_filter($nums,function($num){ return $num%2!=0; })); return $even > $odd; },$numbers,$numbers_prev,$array_res['COUNT_EVEN_GT_COUNT_ODD']);
+		calculate_case(function ($nums) {
+			$even = count(array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			}));
+			$odd = count(array_filter($nums, function ($num) {
+				return $num % 2 != 0;
+			}));
+			return $even > $odd;
+		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_GT_COUNT_ODD']);
 
 		// Разность наибольшего и наименьшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) - min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) - min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_EVEN']);
 
 		// Сумма наименьшего и наибольшего из выпавших номеров Чет
-		calculate_case(function($nums){return (max($nums) + min($nums)) %2 ==0;},$numbers,$numbers_prev,$array_res['SUM_MIN_MAX_EVEN']);
+		calculate_case(function ($nums) {
+			return (max($nums) + min($nums)) % 2 == 0;
+		}, $numbers, $numbers_prev, $array_res['SUM_MIN_MAX_EVEN']);
 
 		// Сумма всех выпавших Четных номеров Больше 40.5
-		calculate_case(function($nums){ $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > 40.5; },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_40.5']);
+		calculate_case(function ($nums) {
+			$filtered = array_filter($nums, function ($num) {
+				return $num % 2 == 0;
+			});
+			return array_sum($filtered) > 40.5;
+		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_40.5']);
 
-		for($number = 42;$number<=45;$number++){
+		for ($number = 42; $number <= 45; $number++) {
 			// Сумма всех выпавших Четных номеров Больше 42.5
-			calculate_case(function($nums) use($number) { $filtered = array_filter($nums,function($num){ return $num %2==0;}); return array_sum($filtered) > ($number+0.5); },$numbers,$numbers_prev,$array_res['SUM_EVEN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				$filtered = array_filter($nums, function ($num) {
+					return $num % 2 == 0;
+				});
+				return array_sum($filtered) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_' . $number . '.5']);
 		}
 
-		for($number = 37;$number<=41;$number++){
+		for ($number = 37; $number <= 41; $number++) {
 			// Сумма всех выпавших Четных номеров Больше $number+0.5
-			calculate_case(function($nums) use($number) { $filtered = array_filter($nums,function($num){ return $num %2 != 0;}); return array_sum($filtered) > ($number+0.5); },$numbers,$numbers_prev,$array_res['SUM_ODD_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				$filtered = array_filter($nums, function ($num) {
+					return $num % 2 != 0;
+				});
+				return array_sum($filtered) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['SUM_ODD_GT_' . $number . '.5']);
 		}
-		
-		for($number = 1;$number<=3;$number++){
+
+		for ($number = 1; $number <= 3; $number++) {
 			// Наименьший выпавший номер Больше ($number+0.5)
-			calculate_case(function($nums) use($number) {return min($nums) > ($number + 0.5);},$numbers,$numbers_prev,$array_res['MIN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return min($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['MIN_GT_' . $number . '.5']);
 		}
-		
-		for($number = 17;$number<=19;$number++){
+
+		for ($number = 17; $number <= 19; $number++) {
 			// Наибольший выпавший номер Больше $number+0.5
-			calculate_case(function($nums) use($number) {return max($nums) > ($number + 0.5);},$numbers,$numbers_prev,$array_res['MAX_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return max($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['MAX_GT_' . $number . '.5']);
 		}
-		
-		for($number = 12;$number<=18;$number++){
+
+		for ($number = 12; $number <= 18; $number++) {
 			// Разность наибольшего и наименьшего номеров Больше $number + 0.5
-			calculate_case(function($nums) use($number) { return (max($nums) - min($nums)) > ($number+0.5); },$numbers,$numbers_prev,$array_res['DIFF_MAX_MIN_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return (max($nums) - min($nums)) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_' . $number . '.5']);
 		}
 
-		for($number = 82;$number<=86;$number++){
+		for ($number = 82; $number <= 86; $number++) {
 			// Сумма всех выпавших номеров Больше $number+0.5
-			calculate_case(function($nums) use($number) {return array_sum($nums) > ($number+0.5);},$numbers,$numbers_prev,$array_res['SUM_GT_'.$number.'.5']);
+			calculate_case(function ($nums) use ($number) {
+				return array_sum($nums) > ($number + 0.5);
+			}, $numbers, $numbers_prev, $array_res['SUM_GT_' . $number . '.5']);
 		}
 
-		for($number = 2;$number<=6;$number++){
+		for ($number = 2; $number <= 6; $number++) {
 			// Количество выпавших НЕчетных номеров Ровно $number
-			calculate_case(function($nums) use($number) {$odd = count(array_filter($nums,function($num){return $num %2 !=0;})); return $odd == $number;},$numbers,$numbers_prev,$array_res['ODD_EQ_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$odd = count(array_filter($nums, function ($num) {
+					return $num % 2 != 0;
+				}));
+				return $odd == $number;
+			}, $numbers, $numbers_prev, $array_res['ODD_EQ_' . $number]);
 		}
-		
-		for($number = 2;$number<=6;$number++){
+
+		for ($number = 2; $number <= 6; $number++) {
 			// Количество выпавших Четных номеров Ровно $number
-			calculate_case(function($nums) use($number) {$even = count(array_filter($nums,function($num){return $num %2 ==0;})); return $even == $number;},$numbers,$numbers_prev,$array_res['EVEN_EQ_'.$number]);
+			calculate_case(function ($nums) use ($number) {
+				$even = count(array_filter($nums, function ($num) {
+					return $num % 2 == 0;
+				}));
+				return $even == $number;
+			}, $numbers, $numbers_prev, $array_res['EVEN_EQ_' . $number]);
 		}
 
 		$numbers_prev = $numbers;

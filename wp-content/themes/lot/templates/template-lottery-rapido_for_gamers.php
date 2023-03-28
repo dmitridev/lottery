@@ -14,6 +14,21 @@ global $wpdb;
 
 $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`='rapido_for_gamers'", ARRAY_A);
 ?>
+<style>
+input[data-name^="NUMBER"] {
+    width: 50px;
+    margin-right: 10px;
+}
+
+td[data-name="ID"] {
+    width: 72px;
+}
+
+.table-row {
+    display: flex;
+    flex-flow: row wrap;
+}
+</style>
 <main class="for-participants пав">
     <section class="header">
         <div class="container">
@@ -36,14 +51,15 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
             	tr.classList.add('table-row');
             	tr.innerHTML = `<td data-name="ID"></td>
                         <td><input data-name="NUMBER1" value=""></td>
-	<td><input data-name="NUMBER2" value=""></td>
-	<td><input data-name="NUMBER3" value=""></td>
-	<td><input data-name="NUMBER4" value=""></td>
-	<td><input data-name="NUMBER5" value=""></td>
-	<td><input data-name="NUMBER6" value=""></td>
-	<td><input data-name="NUMBER7" value=""></td>
-	<td><input data-name="NUMBER8" value=""></td>
-    <td><input data-name="NUMBER9" value=""></td>
+	                    <td><input data-name="NUMBER2" value=""></td>
+	                    <td><input data-name="NUMBER3" value=""></td>
+	                    <td><input data-name="NUMBER4" value=""></td>
+	                    <td><input data-name="NUMBER5" value=""></td>
+	                    <td><input data-name="NUMBER6" value=""></td>
+	                    <td><input data-name="NUMBER7" value=""></td>
+	                    <td><input data-name="NUMBER8" value=""></td>
+                        <td style="margin-right:10px;"> Дополнительный номер: </td>
+                        <td><input data-name="NUMBER9" value=""></td>
                         <td>
                             <button class="delete_data" onclick="delete_data(this)">x</button>
                         </td>`;
@@ -168,20 +184,21 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                                 <?= $row['ID'] ?>
                             </td>
                             <td><input data-name="NUMBER1" value="<?= $row['NUMBER1'] ?>"></td>
-	<td><input data-name="NUMBER2" value="<?= $row['NUMBER2'] ?>"></td>
-	<td><input data-name="NUMBER3" value="<?= $row['NUMBER3'] ?>"></td>
-	<td><input data-name="NUMBER4" value="<?= $row['NUMBER4'] ?>"></td>
-	<td><input data-name="NUMBER5" value="<?= $row['NUMBER5'] ?>"></td>
-	<td><input data-name="NUMBER6" value="<?= $row['NUMBER6'] ?>"></td>
-	<td><input data-name="NUMBER7" value="<?= $row['NUMBER7'] ?>"></td>
-	<td><input data-name="NUMBER8" value="<?= $row['NUMBER8'] ?>"></td>
-	<td><input data-name="NUMBER9" value="<?= $row['NUMBER9'] ?>"></td>
+	                        <td><input data-name="NUMBER2" value="<?= $row['NUMBER2'] ?>"></td>
+	                        <td><input data-name="NUMBER3" value="<?= $row['NUMBER3'] ?>"></td>
+	                        <td><input data-name="NUMBER4" value="<?= $row['NUMBER4'] ?>"></td>
+	                        <td><input data-name="NUMBER5" value="<?= $row['NUMBER5'] ?>"></td>
+	                        <td><input data-name="NUMBER6" value="<?= $row['NUMBER6'] ?>"></td>
+	                        <td><input data-name="NUMBER7" value="<?= $row['NUMBER7'] ?>"></td>
+	                        <td><input data-name="NUMBER8" value="<?= $row['NUMBER8'] ?>"></td>
+                            <td style="margin-right:10px;"> Дополнительный номер: </td>
+	                        <td><input data-name="NUMBER9" value="<?= $row['NUMBER9'] ?>"></td>
                         </tr>
                     <?php } ?>
                 </tbody>
             </table>
             <button class="add_new" onclick="add_new()"> + Добавить данные </button>
-            <button class="load_data" onclick="update_data()"> загрузить список </button>
+            <button class="load_data" onclick="update_data()"> Загрузить список </button>
             <button class="update_data" onclick=update_table(this)> Обновить данные </button>
             <span>Дата последнего обновления: <span class="update-time">
                     <?= $update ?>

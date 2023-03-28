@@ -107,11 +107,9 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
 	const NUMBER18 = !!tr.querySelector('[data-name="NUMBER18"]').value ? tr.querySelector('[data-name="NUMBER18"]').value:0;
 	const NUMBER19 = !!tr.querySelector('[data-name="NUMBER19"]').value ? tr.querySelector('[data-name="NUMBER19"]').value:0;
 	const NUMBER20 = !!tr.querySelector('[data-name="NUMBER20"]').value ? tr.querySelector('[data-name="NUMBER20"]').value:0;
-	const NUMBER21 = !!tr.querySelector('[data-name="NUMBER21"]').value ? tr.querySelector('[data-name="NUMBER21"]').value:0;
-	const NUMBER22 = !!tr.querySelector('[data-name="NUMBER22"]').value ? tr.querySelector('[data-name="NUMBER22"]').value:0;
                 const CURRENT = index;
                 array.push({
-                    numbers: [NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22],
+                    numbers: [NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21],
                     number: CURRENT
                 });
             });
@@ -210,33 +208,31 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                                 <?= $row['ID'] ?>
                             </td>
                             <td><input data-name="NUMBER1" value="<?= $row['NUMBER1'] ?>"></td>
-	<td><input data-name="NUMBER2" value="<?= $row['NUMBER2'] ?>"></td>
-	<td><input data-name="NUMBER3" value="<?= $row['NUMBER3'] ?>"></td>
-	<td><input data-name="NUMBER4" value="<?= $row['NUMBER4'] ?>"></td>
-	<td><input data-name="NUMBER5" value="<?= $row['NUMBER5'] ?>"></td>
-	<td><input data-name="NUMBER6" value="<?= $row['NUMBER6'] ?>"></td>
-	<td><input data-name="NUMBER7" value="<?= $row['NUMBER7'] ?>"></td>
-	<td><input data-name="NUMBER8" value="<?= $row['NUMBER8'] ?>"></td>
-	<td><input data-name="NUMBER9" value="<?= $row['NUMBER9'] ?>"></td>
-	<td><input data-name="NUMBER10" value="<?= $row['NUMBER10'] ?>"></td>
-	<td><input data-name="NUMBER11" value="<?= $row['NUMBER11'] ?>"></td>
-	<td><input data-name="NUMBER12" value="<?= $row['NUMBER12'] ?>"></td>
-	<td><input data-name="NUMBER13" value="<?= $row['NUMBER13'] ?>"></td>
-	<td><input data-name="NUMBER14" value="<?= $row['NUMBER14'] ?>"></td>
-	<td><input data-name="NUMBER15" value="<?= $row['NUMBER15'] ?>"></td>
-	<td><input data-name="NUMBER16" value="<?= $row['NUMBER16'] ?>"></td>
-	<td><input data-name="NUMBER17" value="<?= $row['NUMBER17'] ?>"></td>
-	<td><input data-name="NUMBER18" value="<?= $row['NUMBER18'] ?>"></td>
-	<td><input data-name="NUMBER19" value="<?= $row['NUMBER19'] ?>"></td>
-	<td><input data-name="NUMBER20" value="<?= $row['NUMBER20'] ?>"></td>
-	<td><input data-name="NUMBER21" value="<?= $row['NUMBER21'] ?>"></td>
-	<td><input data-name="NUMBER22" value="<?= $row['NUMBER22'] ?>"></td>
+	                        <td><input data-name="NUMBER2" value="<?= $row['NUMBER2'] ?>"></td>
+	                        <td><input data-name="NUMBER3" value="<?= $row['NUMBER3'] ?>"></td>
+	                        <td><input data-name="NUMBER4" value="<?= $row['NUMBER4'] ?>"></td>
+	                        <td><input data-name="NUMBER5" value="<?= $row['NUMBER5'] ?>"></td>
+	                        <td><input data-name="NUMBER6" value="<?= $row['NUMBER6'] ?>"></td>
+	                        <td><input data-name="NUMBER7" value="<?= $row['NUMBER7'] ?>"></td>
+	                        <td><input data-name="NUMBER8" value="<?= $row['NUMBER8'] ?>"></td>
+	                        <td><input data-name="NUMBER9" value="<?= $row['NUMBER9'] ?>"></td>
+	                        <td><input data-name="NUMBER10" value="<?= $row['NUMBER10'] ?>"></td>
+	                        <td><input data-name="NUMBER11" value="<?= $row['NUMBER11'] ?>"></td>
+	                        <td><input data-name="NUMBER12" value="<?= $row['NUMBER12'] ?>"></td>
+	                        <td><input data-name="NUMBER13" value="<?= $row['NUMBER13'] ?>"></td>
+	                        <td><input data-name="NUMBER14" value="<?= $row['NUMBER14'] ?>"></td>
+	                        <td><input data-name="NUMBER15" value="<?= $row['NUMBER15'] ?>"></td>
+	                        <td><input data-name="NUMBER16" value="<?= $row['NUMBER16'] ?>"></td>
+	                        <td><input data-name="NUMBER17" value="<?= $row['NUMBER17'] ?>"></td>
+	                        <td><input data-name="NUMBER18" value="<?= $row['NUMBER18'] ?>"></td>
+	                        <td><input data-name="NUMBER19" value="<?= $row['NUMBER19'] ?>"></td>
+	                        <td><input data-name="NUMBER20" value="<?= $row['NUMBER20'] ?>"></td>
                         </tr>
                     <?php } ?>
                 </tbody>
             </table>
             <button class="add_new" onclick="add_new()"> + Добавить данные </button>
-            <button class="load_data" onclick="update_data()"> загрузить список </button>
+            <button class="load_data" onclick="update_data()"> Загрузить список </button>
             <button class="update_data" onclick=update_table(this)> Обновить данные </button>
             <span>Дата последнего обновления: <span class="update-time">
                     <?= $update ?>
@@ -249,16 +245,11 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
             <table class="lottery-table" cellspacing="0" cellpadding="0">
                 <thead>
                     <tr>
-                        <th rowspan="2" >
-                        №
-                        </th>
-                        
+                        <th rowspan="2" > № </th>
                         <th rowspan="2">Проверка данных</th>
                         <th rowspan="2">Коэф</th>
-                        
                         <th colspan="2" style="text-align:center">Да</th>
                         <th colspan="2" style="text-align:center">Нет</th>
-                    
                         <th rowspan="2">Коэф</th>
                     </tr>
                     <tr>

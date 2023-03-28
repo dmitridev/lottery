@@ -12,11 +12,14 @@ Template Name: Лотереи V2
 </head>
 </head>
 <body>
+
     <div class="tech-lottery-table">
+        <button class="hide_or_extend_on_left" onclick="toggleLeftTable()">&lt;</button>
         <h2>Проверка лотерей</h2>
         <select class="lotteries-select">
             <option value="">Выберите таблицу</option>
         </select>
+
     </div>
     <div class="table-place">
 
@@ -64,8 +67,7 @@ Template Name: Лотереи V2
             const table = document.querySelector('.tech-lottery-table');
             if(table.classList.contains('hide')){
                 document.querySelector('.hide_or_extend_on_left').innerHTML = "<";
-            }
-            else{
+            } else {
                 document.querySelector('.hide_or_extend_on_left').innerHTML = ">";
             }
 
