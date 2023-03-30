@@ -59,6 +59,7 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
 	<td><input data-name="NUMBER6" value=""></td>
 	<td><input data-name="NUMBER7" value=""></td>
 	<td><input data-name="NUMBER8" value=""></td>
+    <td style="padding:0 10px;">Дополнительный номер:</td>
 	<td><input data-name="NUMBER9" value=""></td>
                         <td>
                             <button class="delete_data" onclick="delete_data(this)">x</button>
@@ -191,6 +192,7 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
 	                        <td><input data-name="NUMBER6" value="<?= $row['NUMBER6'] ?>"></td>
 	                        <td><input data-name="NUMBER7" value="<?= $row['NUMBER7'] ?>"></td>
 	                        <td><input data-name="NUMBER8" value="<?= $row['NUMBER8'] ?>"></td>
+                            <td style="padding:0 10px;">Дополнительный номер:</td>
 	                        <td><input data-name="NUMBER9" value="<?= $row['NUMBER9'] ?>"></td>
                         </tr>
                     <?php } ?>

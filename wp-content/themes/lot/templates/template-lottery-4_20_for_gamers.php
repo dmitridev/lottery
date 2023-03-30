@@ -73,20 +73,20 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
         async function update_data() {
             let array = [];
             Array.from(document.querySelectorAll('.table-row')).forEach((tr, index) => {
-                const NUMBER1 = !!tr.querySelector('[data-name="NUMBER1"]').value ? tr.querySelector('[data-name="NUMBER1"]').value:0;
-                const NUMBER2 = !!tr.querySelector('[data-name="NUMBER2"]').value ? tr.querySelector('[data-name="NUMBER2"]').value:0;
-                const NUMBER3 = !!tr.querySelector('[data-name="NUMBER3"]').value ? tr.querySelector('[data-name="NUMBER3"]').value:0;
-                const NUMBER4 = !!tr.querySelector('[data-name="NUMBER4"]').value ? tr.querySelector('[data-name="NUMBER4"]').value:0;
+                const NUMBER1 = !!tr.querySelector('[data-name="NUMBER1"]').value ? tr.querySelector('[data-name="NUMBER1"]').value : 0;
+                const NUMBER2 = !!tr.querySelector('[data-name="NUMBER2"]').value ? tr.querySelector('[data-name="NUMBER2"]').value : 0;
+                const NUMBER3 = !!tr.querySelector('[data-name="NUMBER3"]').value ? tr.querySelector('[data-name="NUMBER3"]').value : 0;
+                const NUMBER4 = !!tr.querySelector('[data-name="NUMBER4"]').value ? tr.querySelector('[data-name="NUMBER4"]').value : 0;
 
-                const NUMBER5 = !!tr.querySelector('[data-name="NUMBER5"]').value ? tr.querySelector('[data-name="NUMBER5"]').value:0;
-                const NUMBER6 = !!tr.querySelector('[data-name="NUMBER6"]').value ? tr.querySelector('[data-name="NUMBER6"]').value:0;
-                const NUMBER7 = !!tr.querySelector('[data-name="NUMBER7"]').value ? tr.querySelector('[data-name="NUMBER7"]').value:0;
-                const NUMBER8 = !!tr.querySelector('[data-name="NUMBER8"]').value ? tr.querySelector('[data-name="NUMBER8"]').value:0;
-                
+                const NUMBER5 = !!tr.querySelector('[data-name="NUMBER5"]').value ? tr.querySelector('[data-name="NUMBER5"]').value : 0;
+                const NUMBER6 = !!tr.querySelector('[data-name="NUMBER6"]').value ? tr.querySelector('[data-name="NUMBER6"]').value : 0;
+                const NUMBER7 = !!tr.querySelector('[data-name="NUMBER7"]').value ? tr.querySelector('[data-name="NUMBER7"]').value : 0;
+                const NUMBER8 = !!tr.querySelector('[data-name="NUMBER8"]').value ? tr.querySelector('[data-name="NUMBER8"]').value : 0;
+
 
                 const CURRENT = index;
                 array.push({
-                    numbers: [NUMBER1, NUMBER2, NUMBER3, NUMBER4,NUMBER5, NUMBER6, NUMBER7, NUMBER8],
+                    numbers: [NUMBER1, NUMBER2, NUMBER3, NUMBER4, NUMBER5, NUMBER6, NUMBER7, NUMBER8],
                     number: CURRENT
                 });
             });
@@ -194,6 +194,9 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                             <td><input data-name="NUMBER6" value="<?= $row['NUMBER6'] ?>"></td>
                             <td><input data-name="NUMBER7" value="<?= $row['NUMBER7'] ?>"></td>
                             <td><input data-name="NUMBER8" value="<?= $row['NUMBER8'] ?>"></td>
+                            <td>
+                                <button class="delete_data" onclick="delete_data(this)">x</button>
+                            </td>
                         </tr>
                     <?php } ?>
                 </tbody>

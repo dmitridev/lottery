@@ -16,14 +16,14 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
 ?>
 
 <style>
-    td > input[data-name^="NUMBER"]{
-        width:195px;
+    td>input[data-name^="NUMBER"] {
+        width: 195px;
     }
 
     input[data-name^="NUMBER"] {
-        
+
         margin-right: 10px;
-        flex-basis:20%;
+        flex-basis: 20%;
     }
 
     td[data-name="ID"] {
@@ -59,15 +59,13 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
             tr.innerHTML = `
             <td>Поле 1:</td>            
             <td><input data-name="NUMBER1" value=""></td>
-    <td><input data-name="NUMBER2" value=""></td>
-    <td><input data-name="NUMBER3" value=""></td>
-    <td><input data-name="NUMBER4" value=""></td>
-    <td><input data-name="NUMBER5" value=""></td>
-    <td>Поле 2:</td>
-    <td><input data-name="NUMBER6" value=""></td>
-                        <td>
-                            <button class="delete_data" onclick="delete_data(this)">x</button>
-                        </td>`;
+            <td><input data-name="NUMBER2" value=""></td>
+            <td><input data-name="NUMBER3" value=""></td>
+            <td><input data-name="NUMBER4" value=""></td>
+            <td><input data-name="NUMBER5" value=""></td>
+            <td>Поле 2:</td>
+            <td><input data-name="NUMBER6" value=""></td>
+            <td><button class="delete_data" onclick="delete_data(this)">x</button></td>`;
             document.querySelector('.lottery-table.edit').appendChild(tr);
         }
 
@@ -79,12 +77,12 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
         async function update_data() {
             let array = [];
             Array.from(document.querySelectorAll('.table-row')).forEach((tr, index) => {
-                const NUMBER1 = !!tr.querySelector('[data-name="NUMBER1"]').value ? tr.querySelector('[data-name="NUMBER1"]').value:0;
-                const NUMBER2 = !!tr.querySelector('[data-name="NUMBER2"]').value ? tr.querySelector('[data-name="NUMBER2"]').value:0;
-                const NUMBER3 = !!tr.querySelector('[data-name="NUMBER3"]').value ? tr.querySelector('[data-name="NUMBER3"]').value:0;
-                const NUMBER4 = !!tr.querySelector('[data-name="NUMBER4"]').value ? tr.querySelector('[data-name="NUMBER4"]').value:0;
-                const NUMBER5 = !!tr.querySelector('[data-name="NUMBER5"]').value ? tr.querySelector('[data-name="NUMBER5"]').value:0;
-                const NUMBER6 = !!tr.querySelector('[data-name="NUMBER6"]').value ? tr.querySelector('[data-name="NUMBER6"]').value:0;
+                const NUMBER1 = !!tr.querySelector('[data-name="NUMBER1"]').value ? tr.querySelector('[data-name="NUMBER1"]').value : 0;
+                const NUMBER2 = !!tr.querySelector('[data-name="NUMBER2"]').value ? tr.querySelector('[data-name="NUMBER2"]').value : 0;
+                const NUMBER3 = !!tr.querySelector('[data-name="NUMBER3"]').value ? tr.querySelector('[data-name="NUMBER3"]').value : 0;
+                const NUMBER4 = !!tr.querySelector('[data-name="NUMBER4"]').value ? tr.querySelector('[data-name="NUMBER4"]').value : 0;
+                const NUMBER5 = !!tr.querySelector('[data-name="NUMBER5"]').value ? tr.querySelector('[data-name="NUMBER5"]').value : 0;
+                const NUMBER6 = !!tr.querySelector('[data-name="NUMBER6"]').value ? tr.querySelector('[data-name="NUMBER6"]').value : 0;
                 const CURRENT = index;
                 array.push({
                     numbers: [NUMBER1, NUMBER2, NUMBER3, NUMBER4, NUMBER5, NUMBER6],
@@ -193,6 +191,9 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                             <td><input data-name="NUMBER5" value="<?= $row['NUMBER5'] ?>"></td>
                             <td>Поле 2:</td>
                             <td><input data-name="NUMBER6" value="<?= $row['NUMBER6'] ?>"></td>
+                            <td>
+                                <button class="delete_data" onclick="delete_data(this)">x</button>
+                            </td>
                         </tr>
                     <?php } ?>
                 </tbody>

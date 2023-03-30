@@ -71,8 +71,6 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
 	<td><input data-name="NUMBER18" value=""></td>
 	<td><input data-name="NUMBER19" value=""></td>
 	<td><input data-name="NUMBER20" value=""></td>
-	<td><input data-name="NUMBER21" value=""></td>
-	<td><input data-name="NUMBER22" value=""></td>
                         <td>
                             <button class="delete_data" onclick="delete_data(this)">x</button>
                         </td>`;
@@ -109,7 +107,7 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
 	const NUMBER20 = !!tr.querySelector('[data-name="NUMBER20"]').value ? tr.querySelector('[data-name="NUMBER20"]').value:0;
                 const CURRENT = index;
                 array.push({
-                    numbers: [NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21],
+                    numbers: [NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20],
                     number: CURRENT
                 });
             });
@@ -227,6 +225,9 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
 	                        <td><input data-name="NUMBER18" value="<?= $row['NUMBER18'] ?>"></td>
 	                        <td><input data-name="NUMBER19" value="<?= $row['NUMBER19'] ?>"></td>
 	                        <td><input data-name="NUMBER20" value="<?= $row['NUMBER20'] ?>"></td>
+                            <td>
+                            <button class="delete_data" onclick="delete_data(this)">x</button>
+                        </td>
                         </tr>
                     <?php } ?>
                 </tbody>

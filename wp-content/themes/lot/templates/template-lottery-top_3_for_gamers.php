@@ -14,6 +14,23 @@ global $wpdb;
 
 $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`='top_3_for_gamers'", ARRAY_A);
 ?>
+
+<style>
+    input[data-name^="NUMBER"] {
+        width: 50px;
+        margin-right: 10px;
+    }
+
+    td[data-name="ID"] {
+        width: 72px;
+    }
+
+    .table-row {
+        display: flex;
+        flex-flow: row wrap;
+    }
+</style>
+
 <main class="for-participants пав">
     <section class="header">
         <div class="container">
@@ -53,8 +70,9 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
             let array = [];
             Array.from(document.querySelectorAll('.table-row')).forEach((tr, index) => {
                 const NUMBER1 = !!tr.querySelector('[data-name="NUMBER1"]').value ? tr.querySelector('[data-name="NUMBER1"]').value:0;
-	const NUMBER2 = !!tr.querySelector('[data-name="NUMBER2"]').value ? tr.querySelector('[data-name="NUMBER2"]').value:0;
-	const NUMBER3 = !!tr.querySelector('[data-name="NUMBER3"]').value ? tr.querySelector('[data-name="NUMBER3"]').value:0;
+	            const NUMBER2 = !!tr.querySelector('[data-name="NUMBER2"]').value ? tr.querySelector('[data-name="NUMBER2"]').value:0;
+	            const NUMBER3 = !!tr.querySelector('[data-name="NUMBER3"]').value ? tr.querySelector('[data-name="NUMBER3"]').value:0;
+                
                 const CURRENT = index;
                 array.push({
                     numbers: [NUMBER1,NUMBER2,NUMBER3],
@@ -156,8 +174,11 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                                 <?= $row['ID'] ?>
                             </td>
                             <td><input data-name="NUMBER1" value="<?= $row['NUMBER1'] ?>"></td>
-	<td><input data-name="NUMBER2" value="<?= $row['NUMBER2'] ?>"></td>
-	<td><input data-name="NUMBER3" value="<?= $row['NUMBER3'] ?>"></td>
+	                        <td><input data-name="NUMBER2" value="<?= $row['NUMBER2'] ?>"></td>
+	                        <td><input data-name="NUMBER3" value="<?= $row['NUMBER3'] ?>"></td>
+                            <td>
+                                <button class="delete_data" onclick="delete_data(this)">x</button>
+                            </td>
                         </tr>
                     <?php } ?>
                 </tbody>

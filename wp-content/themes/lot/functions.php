@@ -396,7 +396,6 @@ function get_pyataya_skorost_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_pyataya_skorost_for_participants`');
-
 	$array_res = array();
 
 	for ($i = 1; $i <= 36; $i++) {
@@ -407,11 +406,11 @@ function get_pyataya_skorost_for_participants()
 		$array_res['DOP_NUM_' . $i] = prepare_table_values();
 	}
 
-
 	$numbers_prev = array();
-
+	$special_prev = 0;
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6);
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
+		$special = $row->NUMBER6;
 
 		for ($i = 1; $i <= 36; $i++) {
 			//Выпадет номер $i
@@ -421,11 +420,12 @@ function get_pyataya_skorost_for_participants()
 		}
 		for ($i = 1; $i <= 4; $i++) {
 			// Бонусный (Дополнительный) номер $i
-			calculate_case(function ($nums) use ($i) {
-				return end($nums) == $i;
-			}, $numbers, $numbers_prev, $array_res['DOP_NUM_' . $i]);
+			calculate_case(function ($num) use ($i) {
+				return $num == $i;
+			}, $special, $special_prev, $array_res['DOP_NUM_' . $i]);
 		}
 		$numbers_prev = $numbers;
+		$special_prev = $special;
 	}
 
 	foreach ($array_res as $key => $res) {
@@ -603,9 +603,10 @@ function get_velikolepnaya_8_for_participants()
 
 
 	$numbers_prev = array();
-
+	$special_prev = 0;
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9);
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
+		$special = $row->NUMBER9;
 
 		for ($i = 1; $i <= 20; $i++) {
 			// Выпадет номер $i
@@ -616,11 +617,11 @@ function get_velikolepnaya_8_for_participants()
 
 		for ($i = 1; $i <= 4; $i++) {
 			// Бонусный (Дополнительный) номер $i
-			calculate_case(function ($nums) use ($i) {
-				return end($nums) == $i;
-			}, $numbers, $numbers_prev, $array_res['DOP_NUM_' . $i]);
+			calculate_case(function ($num) use ($i) {
+				return $num == $i;
+			}, $special, $special_prev, $array_res['DOP_NUM_' . $i]);
 		}
-
+		$special_prev = $special;
 		$numbers_prev = $numbers;
 	}
 
@@ -662,13 +663,12 @@ function get_lavina_prizov_for_participants()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_lavina_prizov_for_participants`');
+	$array_res = array();
 
 	for ($i = 1; $i <= 20; $i++) {
-		$array_res['FIELD_1_NUM_' . $i] = prepare_table_values();
-		$array_res['FIELD_2_NUM_' . $i] = prepare_table_values();
+		$array_res['FIELD_1_NUM_'.$i] = prepare_table_values();
+		$array_res['FIELD_2_NUM_'.$i] = prepare_table_values();
 	}
-
-	$array_res = array();
 
 	$numbers_prev = array();
 	$numbers_2_prev = array();
@@ -681,12 +681,12 @@ function get_lavina_prizov_for_participants()
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res["FIELD_1_NUM_$i"]);
+			}, $numbers, $numbers_prev, $array_res["FIELD_1_NUM_".$i]);
 
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers_2, $numbers_2_prev, $array_res["FIELD_2_NUM_$i"]);
+			}, $numbers_2, $numbers_2_prev, $array_res["FIELD_2_NUM_".$i]);
 		}
 
 		$numbers_2_prev = $numbers_2;
@@ -2202,7 +2202,8 @@ function get_rus_loto_for_participants()
 	$numbers_prev = array();
 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
+		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
+		$numbers = filter_numbers(range(1,90),$array);
 
 		for ($i = 1; $i <= 90; $i++) {
 			// Выпадет номер $i
@@ -2210,7 +2211,7 @@ function get_rus_loto_for_participants()
 				return in_array($i, $nums);
 			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
-
+		
 		$numbers_prev = $numbers;
 	}
 
@@ -2326,10 +2327,12 @@ function get_bolshoe_sportloto_for_participants()
 	}
 
 	$numbers_prev = array();
+	$field_2_prev = array();
 
 	foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7);
-
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
+		$field_2 = array($row->NUMBER6,$row->NUMBER7);
+		
 		for ($i = 1; $i <= 50; $i++) {
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
@@ -2340,10 +2343,10 @@ function get_bolshoe_sportloto_for_participants()
 		for ($i = 1; $i <= 10; $i++) {
 			// Столбец $i
 			calculate_case(function ($nums) use ($i) {
-				return end($nums) == $i;
-			}, $numbers, $numbers_prev, $array_res['COLUMN_' . $i]);
+				return in_array($i,$nums);
+			}, $field_2, $field_2_prev, $array_res['COLUMN_' . $i]);
 		}
-
+		$field_2_prev = $field_2;
 		$numbers_prev = $numbers;
 	}
 
