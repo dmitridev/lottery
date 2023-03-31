@@ -9549,11 +9549,11 @@ function get_velikolepnaya_8_for_gamers()
 		for ($number = 7; $number <= 12; $number++) {
 			if ($number == 10)
 				continue;
-			// Любой из выпавших номеров кратен 7 (0 не кратное)
+			// Любой из выпавших номеров кратен $number (0 не кратное)
 			calculate_case(function ($nums) use ($number) {
 				$count = count($nums);
 				for ($i = 0; $i < $count; $i++) {
-					if ($nums[$i] != 0 && $nums[$i] % 7 == 0) {
+					if ($nums[$i] != 0 && $nums[$i] % $number == 0) {
 						return true;
 					}
 				}return false;
