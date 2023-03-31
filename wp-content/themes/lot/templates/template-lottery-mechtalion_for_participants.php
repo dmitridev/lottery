@@ -94,7 +94,6 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
     <td><input data-name="NUMBER37" value=""></td>
                         <td>
                             <button class="delete_data" onclick="delete_data(this)">x</button>
-                            <button class="all_numbers_is_fell_out" onclick="all_numbers_is_fell_out(this)">Выпали все числа</button>
                         </td>`;
             document.querySelector('.lottery-table.edit').appendChild(tr);
         }
@@ -296,7 +295,6 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                             <td><input data-name="NUMBER37" value="<?= $row['NUMBER37'] ?>"></td>
                             <td>
                                 <button class="delete_data" onclick="delete_data(this)">x</button>
-                                <button class="all_numbers_is_fell_out" onclick="all_numbers_is_fell_out(this)">Выпали все числа</button>
                             </td>
                         </tr>
                     <?php } ?>

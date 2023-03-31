@@ -52,10 +52,10 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
             	tr.classList.add('table-row');
             	tr.innerHTML = `<td data-name="ID"></td>
                         <td><input data-name="NUMBER1" value=""></td>
-	<td><input data-name="NUMBER2" value=""></td>
-	<td><input data-name="NUMBER3" value=""></td>
-	<td><input data-name="NUMBER4" value=""></td>
-	<td><input data-name="NUMBER5" value=""></td>
+	                    <td><input data-name="NUMBER2" value=""></td>
+	                    <td><input data-name="NUMBER3" value=""></td>
+	                    <td><input data-name="NUMBER4" value=""></td>
+	                    <td><input data-name="NUMBER5" value=""></td>
                         <td>
                             <button class="delete_data" onclick="delete_data(this)">x</button>
                         </td>`;
@@ -180,6 +180,7 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
 	<td><input data-name="NUMBER3" value="<?= $row['NUMBER3'] ?>"></td>
 	<td><input data-name="NUMBER4" value="<?= $row['NUMBER4'] ?>"></td>
 	<td><input data-name="NUMBER5" value="<?= $row['NUMBER5'] ?>"></td>
+    <td><button class="delete_data" onclick="delete_data(this)">x</button></td>
                         </tr>
                     <?php } ?>
                 </tbody>

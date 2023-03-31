@@ -197,6 +197,9 @@ $res2 = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`
                             <td><input data-name="NUMBER6" value="<?= $row['NUMBER6'] ?>"></td>
                             <td><input data-name="NUMBER7" value="<?= $row['NUMBER7'] ?>"></td>
                             <td><input data-name="NUMBER8" value="<?= $row['NUMBER8'] ?>"></td>
+                            <td>
+                            <button class="delete_data" onclick="delete_data(this)">x</button>
+                        </td>
 
                         </tr>
                     <?php } ?>

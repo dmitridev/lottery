@@ -57,15 +57,15 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
             const tr = document.createElement('tr');
             tr.classList.add('table-row');
             tr.innerHTML = `
-            <td>Поле 1:</td>            
-            <td><input data-name="NUMBER1" value=""></td>
-            <td><input data-name="NUMBER2" value=""></td>
-            <td><input data-name="NUMBER3" value=""></td>
-            <td><input data-name="NUMBER4" value=""></td>
-            <td><input data-name="NUMBER5" value=""></td>
-            <td>Поле 2:</td>
-            <td><input data-name="NUMBER6" value=""></td>
-            <td><button class="delete_data" onclick="delete_data(this)">x</button></td>`;
+                <td style="padding:0 10px;">Поле 1:</td>            
+                <td><input data-name="NUMBER1" value=""></td>
+                <td><input data-name="NUMBER2" value=""></td>
+                <td><input data-name="NUMBER3" value=""></td>
+                <td><input data-name="NUMBER4" value=""></td>
+                <td><input data-name="NUMBER5" value=""></td>
+                <td style="padding:0 8.5px;">Поле 2:</td>
+                <td><input data-name="NUMBER6" value=""></td>
+            <td><button class="delete_data" onclick="delete_data(this)" style="margin-right:10px;">x</button></td>`;
             document.querySelector('.lottery-table.edit').appendChild(tr);
         }
 
@@ -183,16 +183,16 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                             <td data-name="ID" style="display:none">
                                 <?= $row['ID'] ?>
                             </td>
-                            <td>Поле 1:</td>
+                            <td style="padding:0 10px;">Поле 1:</td>
                             <td><input data-name="NUMBER1" value="<?= $row['NUMBER1'] ?>"></td>
                             <td><input data-name="NUMBER2" value="<?= $row['NUMBER2'] ?>"></td>
                             <td><input data-name="NUMBER3" value="<?= $row['NUMBER3'] ?>"></td>
                             <td><input data-name="NUMBER4" value="<?= $row['NUMBER4'] ?>"></td>
                             <td><input data-name="NUMBER5" value="<?= $row['NUMBER5'] ?>"></td>
-                            <td>Поле 2:</td>
+                            <td style="padding:0 8.5px;">Поле 2:</td>
                             <td><input data-name="NUMBER6" value="<?= $row['NUMBER6'] ?>"></td>
                             <td>
-                                <button class="delete_data" onclick="delete_data(this)">x</button>
+                                <button class="delete_data" onclick="delete_data(this)" style="margin-right:10px;">x</button>
                             </td>
                         </tr>
                     <?php } ?>

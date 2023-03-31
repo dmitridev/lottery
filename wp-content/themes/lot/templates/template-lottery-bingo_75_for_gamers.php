@@ -12,8 +12,25 @@ Template Name: Лотерея bingo_75_for_gamers
 
 global $wpdb;
 
+
 $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`='bingo_75_for_gamers'", ARRAY_A);
 ?>
+
+<style>
+    input[data-name^="NUMBER"] {
+        width: 50px;
+        margin-right: 10px;
+    }
+
+    td[data-name="ID"] {
+        width: 72px;
+    }
+
+    .table-row {
+        display: flex;
+        flex-flow: row wrap;
+    }
+</style>
 <main class="for-participants пав">
     <section class="header">
         <div class="container">
@@ -38,9 +55,33 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                         <td><input data-name="NUMBER1" value=""></td>
                         <td><input data-name="NUMBER2" value=""></td>
                         <td><input data-name="NUMBER3" value=""></td>
+                        <td><input data-name="NUMBER4" value=""></td>
+                        <td><input data-name="NUMBER5" value=""></td>
+                        <td><input data-name="NUMBER6" value=""></td>
+                        <td><input data-name="NUMBER7" value=""></td>
+                        <td><input data-name="NUMBER8" value=""></td>
+                        <td><input data-name="NUMBER9" value=""></td>
+                        <td><input data-name="NUMBER10" value=""></td>
+                        <td><input data-name="NUMBER11" value=""></td>
+                        <td><input data-name="NUMBER12" value=""></td>
+                        <td><input data-name="NUMBER13" value=""></td>
+                        <td><input data-name="NUMBER14" value=""></td>
+                        <td><input data-name="NUMBER15" value=""></td>
+                        <td><input data-name="NUMBER16" value=""></td>
+                        <td><input data-name="NUMBER17" value=""></td>
+                        <td><input data-name="NUMBER18" value=""></td>
+                        <td><input data-name="NUMBER19" value=""></td>
+                        <td><input data-name="NUMBER20" value=""></td>
+                        <td><input data-name="NUMBER21" value=""></td>
+                        <td><input data-name="NUMBER22" value=""></td>
+                        <td><input data-name="NUMBER23" value=""></td>
+                        <td><input data-name="NUMBER24" value=""></td>
+                        <td><input data-name="NUMBER25" value=""></td>
+                        <td><input data-name="NUMBER26" value=""></td>
+                        <td><input data-name="NUMBER27" value=""></td>
+                        <td><input data-name="NUMBER28" value=""></td>
                         <td>
                             <button class="delete_data" onclick="delete_data(this)">x</button>
-                            <button class="all_numbers_is_fell_out" onclick="all_numbers_is_fell_out(this)">Выпали все числа</button>
                         </td>`;
             document.querySelector('.lottery-table.edit').appendChild(tr);
         }
@@ -53,12 +94,39 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
         async function update_data() {
             let array = [];
             Array.from(document.querySelectorAll('.table-row')).forEach((tr, index) => {
+
+
                 const NUMBER1 = !!tr.querySelector('[data-name="NUMBER1"]').value ? tr.querySelector('[data-name="NUMBER1"]').value : 0;
                 const NUMBER2 = !!tr.querySelector('[data-name="NUMBER2"]').value ? tr.querySelector('[data-name="NUMBER2"]').value : 0;
                 const NUMBER3 = !!tr.querySelector('[data-name="NUMBER3"]').value ? tr.querySelector('[data-name="NUMBER3"]').value : 0;
+                const NUMBER4 = !!tr.querySelector('[data-name="NUMBER4"]').value ? tr.querySelector('[data-name="NUMBER4"]').value : 0;
+                const NUMBER5 = !!tr.querySelector('[data-name="NUMBER5"]').value ? tr.querySelector('[data-name="NUMBER5"]').value : 0;
+                const NUMBER6 = !!tr.querySelector('[data-name="NUMBER6"]').value ? tr.querySelector('[data-name="NUMBER6"]').value : 0;
+                const NUMBER7 = !!tr.querySelector('[data-name="NUMBER7"]').value ? tr.querySelector('[data-name="NUMBER7"]').value : 0;
+                const NUMBER8 = !!tr.querySelector('[data-name="NUMBER8"]').value ? tr.querySelector('[data-name="NUMBER8"]').value : 0;
+                const NUMBER9 = !!tr.querySelector('[data-name="NUMBER9"]').value ? tr.querySelector('[data-name="NUMBER9"]').value : 0;
+                const NUMBER10 = !!tr.querySelector('[data-name="NUMBER10"]').value ? tr.querySelector('[data-name="NUMBER10"]').value : 0;
+                const NUMBER11 = !!tr.querySelector('[data-name="NUMBER11"]').value ? tr.querySelector('[data-name="NUMBER11"]').value : 0;
+                const NUMBER12 = !!tr.querySelector('[data-name="NUMBER12"]').value ? tr.querySelector('[data-name="NUMBER12"]').value : 0;
+                const NUMBER13 = !!tr.querySelector('[data-name="NUMBER13"]').value ? tr.querySelector('[data-name="NUMBER13"]').value : 0;
+                const NUMBER14 = !!tr.querySelector('[data-name="NUMBER14"]').value ? tr.querySelector('[data-name="NUMBER14"]').value : 0;
+                const NUMBER15 = !!tr.querySelector('[data-name="NUMBER15"]').value ? tr.querySelector('[data-name="NUMBER15"]').value : 0;
+                const NUMBER16 = !!tr.querySelector('[data-name="NUMBER16"]').value ? tr.querySelector('[data-name="NUMBER16"]').value : 0;
+                const NUMBER17 = !!tr.querySelector('[data-name="NUMBER16"]').value ? tr.querySelector('[data-name="NUMBER17"]').value : 0;
+                const NUMBER18 = !!tr.querySelector('[data-name="NUMBER18"]').value ? tr.querySelector('[data-name="NUMBER18"]').value : 0;
+                const NUMBER19 = !!tr.querySelector('[data-name="NUMBER19"]').value ? tr.querySelector('[data-name="NUMBER19"]').value : 0;
+                const NUMBER20 = !!tr.querySelector('[data-name="NUMBER20"]').value ? tr.querySelector('[data-name="NUMBER20"]').value : 0;
+                const NUMBER21 = !!tr.querySelector('[data-name="NUMBER21"]').value ? tr.querySelector('[data-name="NUMBER21"]').value : 0;
+                const NUMBER22 = !!tr.querySelector('[data-name="NUMBER22"]').value ? tr.querySelector('[data-name="NUMBER22"]').value : 0;
+                const NUMBER23 = !!tr.querySelector('[data-name="NUMBER23"]').value ? tr.querySelector('[data-name="NUMBER23"]').value : 0;
+                const NUMBER24 = !!tr.querySelector('[data-name="NUMBER24"]').value ? tr.querySelector('[data-name="NUMBER24"]').value : 0;
+                const NUMBER25 = !!tr.querySelector('[data-name="NUMBER25"]').value ? tr.querySelector('[data-name="NUMBER25"]').value : 0;
+                const NUMBER26 = !!tr.querySelector('[data-name="NUMBER26"]').value ? tr.querySelector('[data-name="NUMBER26"]').value : 0;
+                const NUMBER27 = !!tr.querySelector('[data-name="NUMBER27"]').value ? tr.querySelector('[data-name="NUMBER27"]').value : 0;
+                const NUMBER28 = !!tr.querySelector('[data-name="NUMBER28"]').value ? tr.querySelector('[data-name="NUMBER28"]').value : 0;
                 const CURRENT = index;
                 array.push({
-                    numbers: [NUMBER1, NUMBER2, NUMBER3],
+                    numbers: [NUMBER1, NUMBER2, NUMBER3, NUMBER4, NUMBER5, NUMBER6, NUMBER7, NUMBER8, NUMBER9, NUMBER10, NUMBER11, NUMBER12, NUMBER13, NUMBER14, NUMBER15, NUMBER16, NUMBER17, NUMBER18, NUMBER19, NUMBER20, NUMBER21, NUMBER22, NUMBER23, NUMBER24, NUMBER25, NUMBER26, NUMBER27, NUMBER28],
                     number: CURRENT
                 });
             });
@@ -138,7 +206,7 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
             $this.innerHTML = text;
             $this.disabled = false;
         }
-        function all_numbers_is_fell_out($this){
+        function all_numbers_is_fell_out($this) {
             const inputs = Array.from($this.closest('.table-row').querySelectorAll('input[data-name^="NUMBER"]'));
             inputs.forEach(input => input.value = 0);
         }
@@ -164,10 +232,33 @@ $res = $wpdb->get_results("SELECT * FROM `wp_lottery_results` where `LOTO_TYPE`=
                             <td><input data-name="NUMBER1" value="<?= $row['NUMBER1'] ?>"></td>
                             <td><input data-name="NUMBER2" value="<?= $row['NUMBER2'] ?>"></td>
                             <td><input data-name="NUMBER3" value="<?= $row['NUMBER3'] ?>"></td>
+                            <td><input data-name="NUMBER4" value="<?= $row['NUMBER4'] ?>"></td>
+                            <td><input data-name="NUMBER5" value="<?= $row['NUMBER5'] ?>"></td>
+                            <td><input data-name="NUMBER6" value="<?= $row['NUMBER6'] ?>"></td>
+                            <td><input data-name="NUMBER7" value="<?= $row['NUMBER7'] ?>"></td>
+                            <td><input data-name="NUMBER8" value="<?= $row['NUMBER8'] ?>"></td>
+                            <td><input data-name="NUMBER9" value="<?= $row['NUMBER9'] ?>"></td>
+                            <td><input data-name="NUMBER10" value="<?= $row['NUMBER10'] ?>"></td>
+                            <td><input data-name="NUMBER11" value="<?= $row['NUMBER11'] ?>"></td>
+                            <td><input data-name="NUMBER12" value="<?= $row['NUMBER12'] ?>"></td>
+                            <td><input data-name="NUMBER13" value="<?= $row['NUMBER13'] ?>"></td>
+                            <td><input data-name="NUMBER14" value="<?= $row['NUMBER14'] ?>"></td>
+                            <td><input data-name="NUMBER15" value="<?= $row['NUMBER15'] ?>"></td>
+                            <td><input data-name="NUMBER16" value="<?= $row['NUMBER16'] ?>"></td>
+                            <td><input data-name="NUMBER17" value="<?= $row['NUMBER17'] ?>"></td>
+                            <td><input data-name="NUMBER18" value="<?= $row['NUMBER18'] ?>"></td>
+                            <td><input data-name="NUMBER19" value="<?= $row['NUMBER19'] ?>"></td>
+                            <td><input data-name="NUMBER20" value="<?= $row['NUMBER20'] ?>"></td>
+                            <td><input data-name="NUMBER21" value="<?= $row['NUMBER21'] ?>"></td>
+                            <td><input data-name="NUMBER22" value="<?= $row['NUMBER22'] ?>"></td>
+                            <td><input data-name="NUMBER23" value="<?= $row['NUMBER23'] ?>"></td>
+                            <td><input data-name="NUMBER24" value="<?= $row['NUMBER24'] ?>"></td>
+                            <td><input data-name="NUMBER25" value="<?= $row['NUMBER25'] ?>"></td>
+                            <td><input data-name="NUMBER26" value="<?= $row['NUMBER26'] ?>"></td>
+                            <td><input data-name="NUMBER27" value="<?= $row['NUMBER27'] ?>"></td>
+                            <td><input data-name="NUMBER28" value="<?= $row['NUMBER28'] ?>"></td>
                             <td>
                                 <button class="delete_data" onclick="delete_data(this)">x</button>
-                                <button class="all_numbers_is_fell_out" onclick="all_numbers_is_fell_out(this)">Выпали все
-                                    числа</button>
                             </td>
                         </tr>
                     <?php } ?>
