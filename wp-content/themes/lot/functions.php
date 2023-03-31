@@ -198,7 +198,49 @@ function register_post_types()
 	]);
 }
 
-include_once __DIR__ . '/lotteries.php';
+function filter_numbers(array $range, array $numbers)
+{
+	return array_filter($range, function ($num) use ($numbers) {
+		return !in_array($num, $numbers);
+	});
+}
+
+function prepare_table_values()
+{
+	return array('VALUE_YES_NOW' => 0, 'VALUE_NO_NOW' => 0, 'VALUE_YES_MAX' => 0, 'VALUE_NO_MAX' => 0);
+}
+
+
+// $value_to_change = array('VALUE_YES_NOW' => 0, 'VALUE_NO_NOW' => 0, 'VALUE_YES_MAX' => 0, 'VALUE_NO_MAX' => 0);
+function calculate_case($condition, &$numbers, &$numbers_prev, &$value_to_change)
+{
+	$condition_result = $condition($numbers);
+	$condition_result_prev = $condition($numbers_prev);
+
+	if ($condition_result)
+		if ($condition_result_prev)
+			$value_to_change['VALUE_YES_NOW'] += 1;
+		else {
+			$value_to_change['VALUE_YES_NOW'] = 1;
+			$value_to_change['VALUE_NO_NOW'] = 0;
+		}
+
+
+	if (!$condition_result)
+		if (!$condition_result_prev)
+			$value_to_change['VALUE_NO_NOW'] += 1;
+		else {
+			$value_to_change['VALUE_NO_NOW'] = 1;
+			$value_to_change['VALUE_YES_NOW'] = 0;
+		}
+
+
+	if ($value_to_change['VALUE_YES_MAX'] < $value_to_change['VALUE_YES_NOW'])
+		$value_to_change['VALUE_YES_MAX'] = $value_to_change['VALUE_YES_NOW'];
+
+	if ($value_to_change['VALUE_NO_MAX'] < $value_to_change['VALUE_NO_NOW'])
+		$value_to_change['VALUE_NO_MAX'] = $value_to_change['VALUE_NO_NOW'];
+}
 
 add_action('wp_ajax_insert_mechtalion_for_participants', 'insert_from_table_mechtalion_for_participants');
 add_action('wp_ajax_nopriv_insert_mechtalion_for_participants', 'insert_from_table_mechtalion_for_participants');
@@ -212,10 +254,13 @@ function insert_from_table_mechtalion_for_participants()
 	} else
 		wp_die();
 
+	$wpdb->query('DELETE FROM `wp_lottery_mechtalion_for_participants`');
+	var_dump($rows);
+	foreach ($rows as $item) {
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_mechtalion_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22,NUMBER23,NUMBER24,NUMBER25,NUMBER26,NUMBER27,NUMBER28,NUMBER29,NUMBER30,NUMBER31,NUMBER32,NUMBER33,NUMBER34,NUMBER35,NUMBER36,NUMBER37) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19] . ',' . $item->numbers[20] . ',' . $item->numbers[21] . ',' . $item->numbers[22] . ',' . $item->numbers[23] . ',' . $item->numbers[24] . ',' . $item->numbers[25] . ',' . $item->numbers[26] . ',' . $item->numbers[27] . ',' . $item->numbers[28] . ',' . $item->numbers[29] . ',' . $item->numbers[30] . ',' . $item->numbers[31] . ',' . $item->numbers[32] . ',' . $item->numbers[33] . ',' . $item->numbers[34] . ',' . $item->numbers[35] . ',' . $item->numbers[36] . ")";
+		$wpdb->query($sql_request_about_insert);
+	}
 
-	insert_values_to_table('mechtalion_for_participants', 37, $rows);
-
-	echo json_encode(['success' => 'true'], true);
 	wp_die();
 }
 
@@ -225,19 +270,36 @@ add_action('wp_ajax_nopriv_get_mechtalion_for_participants', 'get_mechtalion_for
 
 function get_mechtalion_for_participants()
 {
-	// берём список рядов
-	$rows = get_table_rows('mechtalion_for_participants');
-	// берём список ключей для условий
-	$keys = get_table_keys('mechtalion_for_participants');
-	// заполняем их нулевыми значениями.
-	$array_res = init_table_values($keys);
-	// рассчитываем результаты
-	$array_res = calculate_cases_mecthalion_for_participants($rows, $array_res);
-	// сохраняем результаты в таблицу
-	save_table_results_to_database('mechtalion_for_participants', $array_res);
-	// выводим значение 
-	echo json_encode(array("results" => $array_res, "update" => date('Y:m:d H:i:s')));
+	global $wpdb;
+	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_mechtalion_for_participants`');
 
+	$array_res = array();
+
+	for ($i = 1; $i <= 80; $i++) {
+		$array_res['NUM_' . $i] = prepare_table_values();
+	}
+	// тут нужны невыпавшие числа.
+	$numbers_prev = array();
+
+	foreach ($rows as $row) {
+		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15, $row->NUMBER16, $row->NUMBER17, $row->NUMBER18, $row->NUMBER19, $row->NUMBER20, $row->NUMBER21, $row->NUMBER22, $row->NUMBER23, $row->NUMBER24, $row->NUMBER25, $row->NUMBER26, $row->NUMBER27, $row->NUMBER28, $row->NUMBER29, $row->NUMBER30, $row->NUMBER31, $row->NUMBER32, $row->NUMBER33, $row->NUMBER34, $row->NUMBER35, $row->NUMBER36, $row->NUMBER37);
+		$numbers = filter_numbers(range(1, 80), $array);
+
+		for ($i = 1; $i <= 80; $i++) {
+			// выпадет номер $i
+			calculate_case(function ($nums) use ($i) {
+				return in_array($i, $nums);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
+
+		}
+		$numbers_prev = $numbers;
+	}
+
+	foreach ($array_res as $key => $res) {
+		$wpdb->query("UPDATE `wp_lottery_results` SET VALUE_YES=" . $res['VALUE_YES_MAX'] . ", VALUE_NO=" . $res['VALUE_NO_MAX'] . ", VALUE_YES_NOW=" . $res['VALUE_YES_NOW'] . ", VALUE_NO_NOW=" . $res['VALUE_NO_NOW'] . " where LOTO_TYPE='mechtalion_for_participants' and VALUE_ID='" . $key . "'");
+	}
+
+	echo json_encode(array("results" => $array_res, "update" => date('Y:m:d H:i:s')));
 	wp_die();
 }
 
@@ -501,6 +563,7 @@ function get_3_3_for_participants()
 add_action('wp_ajax_insert_velikolepnaya_8_for_participants', 'insert_from_table_velikolepnaya_8_for_participants');
 add_action('wp_ajax_nopriv_insert_velikolepnaya_8_for_participants', 'insert_from_table_velikolepnaya_8_for_participants');
 
+
 function insert_from_table_velikolepnaya_8_for_participants()
 {
 	global $wpdb;
@@ -603,9 +666,11 @@ function get_lavina_prizov_for_participants()
 	$array_res = array();
 
 	for ($i = 1; $i <= 20; $i++) {
-		$array_res['FIELD_1_NUM_' . $i] = prepare_table_values();
-		$array_res['FIELD_2_NUM_' . $i] = prepare_table_values();
+		$array_res['FIELD_1_NUM_'.$i] = prepare_table_values();
+		$array_res['FIELD_2_NUM_'.$i] = prepare_table_values();
 	}
+
+
 
 	$numbers_prev = array();
 	$numbers_2_prev = array();
@@ -618,12 +683,12 @@ function get_lavina_prizov_for_participants()
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res["FIELD_1_NUM_" . $i]);
+			}, $numbers, $numbers_prev, $array_res['FIELD_1_NUM_'.$i]);
 
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers_2, $numbers_2_prev, $array_res["FIELD_2_NUM_" . $i]);
+			}, $numbers_2, $numbers_2_prev, $array_res['FIELD_2_NUM_'.$i]);
 		}
 
 		$numbers_2_prev = $numbers_2;
@@ -667,11 +732,6 @@ add_action('wp_ajax_nopriv_get_6_45_for_participants', 'get_6_45_for_participant
 
 function get_6_45_for_participants()
 {
-	// $keys = get_keys('6_45_for_participants');
-	// $array_res = init_array_of_result($keys,'6_45_for_participants');
-	// $array_res = calculate_values('6_45_for_participants');
-	// save_table_results_to_database('6_45_for_participants');
-
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_6_45_for_participants`');
 
@@ -754,14 +814,14 @@ function get_5_36_for_participants()
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res["NUM_$i"]);
+			}, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
 		}
 
 		for ($i = 1; $i <= 4; $i++) {
 			// выпадет дополнительный номер $i
 			calculate_case(function ($special) use ($i) {
 				return $special == $i;
-			}, $special, $special_prev, $array_res["DOP_NUM_$i"]);
+			}, $special, $special_prev, $array_res['DOP_NUM_'.$i]);
 		}
 
 		$special_prev = $special;
@@ -777,8 +837,11 @@ function get_5_36_for_participants()
 }
 
 
+
 add_action('wp_ajax_insert_4_20_for_participants', 'insert_from_table_4_20_for_participants');
 add_action('wp_ajax_nopriv_insert_4_20_for_participants', 'insert_from_table_4_20_for_participants');
+
+
 function insert_from_table_4_20_for_participants()
 {
 	global $wpdb;
@@ -798,8 +861,10 @@ function insert_from_table_4_20_for_participants()
 	wp_die();
 }
 
+
 add_action('wp_ajax_get_4_20_for_participants', 'get_4_20_for_participants');
 add_action('wp_ajax_nopriv_get_4_20_for_participants', 'get_4_20_for_participants');
+
 function get_4_20_for_participants()
 {
 	global $wpdb;
@@ -823,12 +888,12 @@ function get_4_20_for_participants()
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res["FIELD_1_NUM_$i"]);
+			}, $numbers, $numbers_prev, $array_res['FIELD_1_NUM_'.$i]);
 
 			//ПОЛЕ 2: Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers_2, $numbers_2_prev, $array_res["FIELD_2_NUM_$i"]);
+			}, $numbers_2, $numbers_2_prev, $array_res['FIELD_2_NUM_'.$i]);
 		}
 
 		$numbers_2_prev = $numbers_2;
@@ -845,6 +910,8 @@ function get_4_20_for_participants()
 
 add_action('wp_ajax_insert_rapido_for_participants', 'insert_from_table_rapido_for_participants');
 add_action('wp_ajax_nopriv_insert_rapido_for_participants', 'insert_from_table_rapido_for_participants');
+
+
 function insert_from_table_rapido_for_participants()
 {
 	global $wpdb;
@@ -867,6 +934,7 @@ function insert_from_table_rapido_for_participants()
 
 add_action('wp_ajax_get_rapido_for_participants', 'get_rapido_for_participants');
 add_action('wp_ajax_nopriv_get_rapido_for_participants', 'get_rapido_for_participants');
+
 function get_rapido_for_participants()
 {
 	global $wpdb;
@@ -920,6 +988,8 @@ function get_rapido_for_participants()
 
 add_action('wp_ajax_insert_rapido_2_for_participants', 'insert_from_table_rapido_2_for_participants');
 add_action('wp_ajax_nopriv_insert_rapido_2_for_participants', 'insert_from_table_rapido_2_for_participants');
+
+
 function insert_from_table_rapido_2_for_participants()
 {
 	global $wpdb;
@@ -942,6 +1012,7 @@ function insert_from_table_rapido_2_for_participants()
 
 add_action('wp_ajax_get_rapido_2_for_participants', 'get_rapido_2_for_participants');
 add_action('wp_ajax_nopriv_get_rapido_2_for_participants', 'get_rapido_2_for_participants');
+
 function get_rapido_2_for_participants()
 {
 	global $wpdb;
@@ -1036,6 +1107,7 @@ function insert_from_table_rapido_for_gamers()
 
 	wp_die();
 }
+
 
 add_action('wp_ajax_get_rapido_for_gamers', 'get_rapido_for_gamers');
 add_action('wp_ajax_nopriv_get_rapido_for_gamers', 'get_rapido_for_gamers');
@@ -1164,7 +1236,7 @@ function get_rapido_for_gamers()
 
 		// Бонусный (Дополнительный) номер Больше 2.5
 		calculate_case(function ($special) {
-			return $special == 2.5;
+			return $special > 2.5;
 		}, $special, $special_prev, $array_res['DOP_NUM_GT_2.5']);
 
 		// Бонусный (Дополнительный) номер Чет
@@ -1371,7 +1443,7 @@ function get_rapido_for_gamers()
 			$odd = array_filter($nums, function ($num) {
 				return $num % 2 != 0;
 			});
-			return $even > $odd;
+			return array_sum($even) > array_sum($odd);
 		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_SUM_ODD']);
 
 		// Количество выпавших НЕчетных номеров Меньше 4
@@ -1665,12 +1737,12 @@ function get_duel_for_participants()
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res["FIELD_1_NUM_" . $i]);
+			}, $numbers, $numbers_prev, $array_res['FIELD_1_NUM_'.$i]);
 
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers_2, $numbers_2_prev, $array_res["FIELD_2_NUM_" . $i]);
+			}, $numbers_2, $numbers_2_prev, $array_res['FIELD_2_NUM_'.$i]);
 		}
 
 		$numbers_2_prev = $numbers_2;
@@ -1686,6 +1758,8 @@ function get_duel_for_participants()
 }
 add_action('wp_ajax_insert_top3_for_participants', 'insert_from_table_top3_for_participants');
 add_action('wp_ajax_nopriv_insert_top3_for_participants', 'insert_from_table_top3_for_participants');
+
+
 function insert_from_table_top3_for_participants()
 {
 	global $wpdb;
@@ -1708,6 +1782,7 @@ function insert_from_table_top3_for_participants()
 
 add_action('wp_ajax_get_top3_for_participants', 'get_top3_for_participants');
 add_action('wp_ajax_nopriv_get_top3_for_participants', 'get_top3_for_participants');
+
 function get_top3_for_participants()
 {
 	global $wpdb;
@@ -1744,6 +1819,8 @@ function get_top3_for_participants()
 
 add_action('wp_ajax_insert_keno_for_participants', 'insert_from_table_keno_for_participants');
 add_action('wp_ajax_nopriv_insert_keno_for_participants', 'insert_from_table_keno_for_participants');
+
+
 function insert_from_table_keno_for_participants()
 {
 	global $wpdb;
@@ -1756,7 +1833,7 @@ function insert_from_table_keno_for_participants()
 	$wpdb->query('DELETE FROM `wp_lottery_keno_for_participants`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_keno_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19] . ',' . $item->numbers[20] . ',' . $item->numbers[21] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_keno_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19] . ',' . $item->numbers[20] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -1765,6 +1842,7 @@ function insert_from_table_keno_for_participants()
 
 add_action('wp_ajax_get_keno_for_participants', 'get_keno_for_participants');
 add_action('wp_ajax_nopriv_get_keno_for_participants', 'get_keno_for_participants');
+
 function get_keno_for_participants()
 {
 	global $wpdb;
@@ -1846,6 +1924,8 @@ function get_keno_for_participants()
 
 add_action('wp_ajax_insert_6_36_for_participants', 'insert_from_table_6_36_for_participants');
 add_action('wp_ajax_nopriv_insert_6_36_for_participants', 'insert_from_table_6_36_for_participants');
+
+
 function insert_from_table_6_36_for_participants()
 {
 	global $wpdb;
@@ -1868,6 +1948,7 @@ function insert_from_table_6_36_for_participants()
 
 add_action('wp_ajax_get_6_36_for_participants', 'get_6_36_for_participants');
 add_action('wp_ajax_nopriv_get_6_36_for_participants', 'get_6_36_for_participants');
+
 function get_6_36_for_participants()
 {
 	global $wpdb;
@@ -1903,6 +1984,8 @@ function get_6_36_for_participants()
 
 add_action('wp_ajax_insert_rocketbingo_for_participants', 'insert_from_table_rocketbingo_for_participants');
 add_action('wp_ajax_nopriv_insert_rocketbingo_for_participants', 'insert_from_table_rocketbingo_for_participants');
+
+
 function insert_from_table_rocketbingo_for_participants()
 {
 	global $wpdb;
@@ -1925,6 +2008,7 @@ function insert_from_table_rocketbingo_for_participants()
 
 add_action('wp_ajax_get_rocketbingo_for_participants', 'get_rocketbingo_for_participants');
 add_action('wp_ajax_nopriv_get_rocketbingo_for_participants', 'get_rocketbingo_for_participants');
+
 function get_rocketbingo_for_participants()
 {
 	global $wpdb;
@@ -1960,6 +2044,8 @@ function get_rocketbingo_for_participants()
 
 add_action('wp_ajax_insert_7_49_for_participants', 'insert_from_table_7_49_for_participants');
 add_action('wp_ajax_nopriv_insert_7_49_for_participants', 'insert_from_table_7_49_for_participants');
+
+
 function insert_from_table_7_49_for_participants()
 {
 	global $wpdb;
@@ -1982,6 +2068,7 @@ function insert_from_table_7_49_for_participants()
 
 add_action('wp_ajax_get_7_49_for_participants', 'get_7_49_for_participants');
 add_action('wp_ajax_nopriv_get_7_49_for_participants', 'get_7_49_for_participants');
+
 function get_7_49_for_participants()
 {
 	global $wpdb;
@@ -2017,6 +2104,8 @@ function get_7_49_for_participants()
 
 add_action('wp_ajax_insert_bingo_75_for_participants', 'insert_from_table_bingo_75_for_participants');
 add_action('wp_ajax_nopriv_insert_bingo_75_for_participants', 'insert_from_table_bingo_75_for_participants');
+
+
 function insert_from_table_bingo_75_for_participants()
 {
 	global $wpdb;
@@ -2039,6 +2128,7 @@ function insert_from_table_bingo_75_for_participants()
 
 add_action('wp_ajax_get_bingo_75_for_participants', 'get_bingo_75_for_participants');
 add_action('wp_ajax_nopriv_get_bingo_75_for_participants', 'get_bingo_75_for_participants');
+
 function get_bingo_75_for_participants()
 {
 	global $wpdb;
@@ -2076,6 +2166,8 @@ function get_bingo_75_for_participants()
 
 add_action('wp_ajax_insert_rus_loto_for_participants', 'insert_from_table_rus_loto_for_participants');
 add_action('wp_ajax_nopriv_insert_rus_loto_for_participants', 'insert_from_table_rus_loto_for_participants');
+
+
 function insert_from_table_rus_loto_for_participants()
 {
 	global $wpdb;
@@ -2098,6 +2190,7 @@ function insert_from_table_rus_loto_for_participants()
 
 add_action('wp_ajax_get_rus_loto_for_participants', 'get_rus_loto_for_participants');
 add_action('wp_ajax_nopriv_get_rus_loto_for_participants', 'get_rus_loto_for_participants');
+
 function get_rus_loto_for_participants()
 {
 	global $wpdb;
@@ -2112,7 +2205,7 @@ function get_rus_loto_for_participants()
 
 	foreach ($rows as $row) {
 		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
-		$numbers = filter_numbers(range(1, 90), $array);
+		$numbers = filter_numbers(range(1,90),$array);
 
 		for ($i = 1; $i <= 90; $i++) {
 			// Выпадет номер $i
@@ -2120,7 +2213,7 @@ function get_rus_loto_for_participants()
 				return in_array($i, $nums);
 			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
-
+		
 		$numbers_prev = $numbers;
 	}
 
@@ -2134,6 +2227,8 @@ function get_rus_loto_for_participants()
 
 add_action('wp_ajax_insert_loto_express_for_participants', 'insert_from_table_loto_express_for_participants');
 add_action('wp_ajax_nopriv_insert_loto_express_for_participants', 'insert_from_table_loto_express_for_participants');
+
+
 function insert_from_table_loto_express_for_participants()
 {
 	global $wpdb;
@@ -2156,6 +2251,7 @@ function insert_from_table_loto_express_for_participants()
 
 add_action('wp_ajax_get_loto_express_for_participants', 'get_loto_express_for_participants');
 add_action('wp_ajax_nopriv_get_loto_express_for_participants', 'get_loto_express_for_participants');
+
 function get_loto_express_for_participants()
 {
 	global $wpdb;
@@ -2193,6 +2289,8 @@ function get_loto_express_for_participants()
 
 add_action('wp_ajax_insert_bolshoe_sportloto_for_participants', 'insert_from_table_bolshoe_sportloto_for_participants');
 add_action('wp_ajax_nopriv_insert_bolshoe_sportloto_for_participants', 'insert_from_table_bolshoe_sportloto_for_participants');
+
+
 function insert_from_table_bolshoe_sportloto_for_participants()
 {
 	global $wpdb;
@@ -2215,6 +2313,7 @@ function insert_from_table_bolshoe_sportloto_for_participants()
 
 add_action('wp_ajax_get_bolshoe_sportloto_for_participants', 'get_bolshoe_sportloto_for_participants');
 add_action('wp_ajax_nopriv_get_bolshoe_sportloto_for_participants', 'get_bolshoe_sportloto_for_participants');
+
 function get_bolshoe_sportloto_for_participants()
 {
 	global $wpdb;
@@ -2234,8 +2333,8 @@ function get_bolshoe_sportloto_for_participants()
 
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
-		$field_2 = array($row->NUMBER6, $row->NUMBER7);
-
+		$field_2 = array($row->NUMBER6,$row->NUMBER7);
+		
 		for ($i = 1; $i <= 50; $i++) {
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
@@ -2246,7 +2345,7 @@ function get_bolshoe_sportloto_for_participants()
 		for ($i = 1; $i <= 10; $i++) {
 			// Столбец $i
 			calculate_case(function ($nums) use ($i) {
-				return in_array($i, $nums);
+				return in_array($i,$nums);
 			}, $field_2, $field_2_prev, $array_res['COLUMN_' . $i]);
 		}
 		$field_2_prev = $field_2;
@@ -2263,6 +2362,8 @@ function get_bolshoe_sportloto_for_participants()
 
 add_action('wp_ajax_insert_zhilishnaya_lotereya_for_participants', 'insert_from_table_zhilishnaya_lotereya_for_participants');
 add_action('wp_ajax_nopriv_insert_zhilishnaya_lotereya_for_participants', 'insert_from_table_zhilishnaya_lotereya_for_participants');
+
+
 function insert_from_table_zhilishnaya_lotereya_for_participants()
 {
 	global $wpdb;
@@ -2285,6 +2386,7 @@ function insert_from_table_zhilishnaya_lotereya_for_participants()
 
 add_action('wp_ajax_get_zhilishnaya_lotereya_for_participants', 'get_zhilishnaya_lotereya_for_participants');
 add_action('wp_ajax_nopriv_get_zhilishnaya_lotereya_for_participants', 'get_zhilishnaya_lotereya_for_participants');
+
 function get_zhilishnaya_lotereya_for_participants()
 {
 	global $wpdb;
@@ -2321,6 +2423,8 @@ function get_zhilishnaya_lotereya_for_participants()
 
 add_action('wp_ajax_insert_zolotaya_podkova_for_participants', 'insert_from_table_zolotaya_podkova_for_participants');
 add_action('wp_ajax_nopriv_insert_zolotaya_podkova_for_participants', 'insert_from_table_zolotaya_podkova_for_participants');
+
+
 function insert_from_table_zolotaya_podkova_for_participants()
 {
 	global $wpdb;
@@ -2343,6 +2447,7 @@ function insert_from_table_zolotaya_podkova_for_participants()
 
 add_action('wp_ajax_get_zolotaya_podkova_for_participants', 'get_zolotaya_podkova_for_participants');
 add_action('wp_ajax_nopriv_get_zolotaya_podkova_for_participants', 'get_zolotaya_podkova_for_participants');
+
 function get_zolotaya_podkova_for_participants()
 {
 	global $wpdb;
@@ -2381,6 +2486,8 @@ function get_zolotaya_podkova_for_participants()
 
 add_action('wp_ajax_insert_6_45_for_gamers', 'insert_from_table_6_45_for_gamers');
 add_action('wp_ajax_nopriv_insert_6_45_for_gamers', 'insert_from_table_6_45_for_gamers');
+
+
 function insert_from_table_6_45_for_gamers()
 {
 	global $wpdb;
@@ -2403,11 +2510,11 @@ function insert_from_table_6_45_for_gamers()
 
 add_action('wp_ajax_get_6_45_for_gamers', 'get_6_45_for_gamers');
 add_action('wp_ajax_nopriv_get_6_45_for_gamers', 'get_6_45_for_gamers');
+
 function get_6_45_for_gamers()
 {
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_6_45_for_gamers`');
-
 
 	$keys = array(
 		'ANY_DIV_4',
@@ -2821,10 +2928,12 @@ function get_6_45_for_gamers()
 		'COUNT_41_45_EQ_1'
 	);
 
+	
 	$array_res = array();
 
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
+
 
 	$numbers_prev = array(); foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6);
@@ -2888,7 +2997,7 @@ function get_6_45_for_gamers()
 
 		// Сумма всех выпавших номеров Чет
 		calculate_case(function ($nums) {
-			(array_sum($nums) % 2) == 0;
+			return (array_sum($nums) % 2) == 0;
 		}, $numbers, $numbers_prev, $array_res['SUM_EVEN']);
 
 		// Четных больше, чем НЕчетных
@@ -2904,13 +3013,18 @@ function get_6_45_for_gamers()
 
 		// Сумма выпавших четных номеров больше, чем сумма выпавших НЕчетных номеров
 		calculate_case(function ($nums) {
+			return true;
+			/*
 			$even = array_filter($nums, function ($num) {
 				return $num % 2 == 0;
 			});
+			
 			$odd = array_filter($nums, function ($num) {
 				return $num % 2 != 0;
 			});
-			return $even > $odd;
+
+			return array_sum($even) > array_sum($odd);
+			*/
 		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_SUM_ODD']);
 
 		// Сумма всех выпавших номеров от 1 до 10 Больше 5.5
@@ -3158,7 +3272,7 @@ function get_6_45_for_gamers()
 			// $i-й номер Чет
 			calculate_case(function ($nums) use ($i) {
 				return $nums[$i - 1] % 2 == 0;
-			}, $numbers, $numbers_prev, $array_res['NUM_' . $i . 'EVEN']);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i . '_EVEN']);
 		}
 
 		for ($i = 102; $i <= 173; $i++) {
@@ -3168,10 +3282,6 @@ function get_6_45_for_gamers()
 			}, $numbers, $numbers_prev, $array_res['SUM_GT_' . $i . '.5']);
 		}
 
-		$min_numbers;
-		$min_numbers_prev;
-		$max_numbers;
-		$max_numbers_prev;
 
 		for ($i = 1; $i <= 12; $i++) {
 			// Наименьший выпавший номер Больше ($i +0.5)
@@ -3723,6 +3833,8 @@ function get_6_45_for_gamers()
 
 add_action('wp_ajax_insert_5_36_for_gamers', 'insert_from_table_5_36_for_gamers');
 add_action('wp_ajax_nopriv_insert_5_36_for_gamers', 'insert_from_table_5_36_for_gamers');
+
+
 function insert_from_table_5_36_for_gamers()
 {
 	global $wpdb;
@@ -3745,6 +3857,7 @@ function insert_from_table_5_36_for_gamers()
 
 add_action('wp_ajax_get_5_36_for_gamers', 'get_5_36_for_gamers');
 add_action('wp_ajax_nopriv_get_5_36_for_gamers', 'get_5_36_for_gamers');
+
 function get_5_36_for_gamers()
 {
 	global $wpdb;
@@ -3924,15 +4037,19 @@ function get_5_36_for_gamers()
 	$numbers_prev = array(); foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6);
 
-		for ($number = 4; $$number <= 36; $number++) {
-			// Любой из выпавших номеров кратен 4 (0 не кратное)
+		for ($number = 4; $number <= 36; $number++) {
+			if($number == 32) continue;
+			// Любой из выпавших номеров кратен $number (0 не кратное)
 			calculate_case(function ($nums) use ($number) {
 				$count = count($nums);
 				for ($i = 0; $i < $count; $i++) {
-					if ($nums[$i] % $number == 0) {
+					if ($i != 0 && $nums[$i] % $number == 0) {
 						return true;
 					}
-				}return false;
+				}
+
+				return false;
+
 			}, $numbers, $numbers_prev, $array_res['ANY_DIV_' . $number]);
 		}
 
@@ -3981,7 +4098,7 @@ function get_5_36_for_gamers()
 			$odd = array_filter($nums, function ($num) {
 				return $num % 2 != 0;
 			});
-			return $even > $odd;
+			return array_sum($even) > array_sum($odd);
 		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_SUM_ODD']);
 
 		// Сумма всех выпавших номеров ЧЕТ
@@ -4260,7 +4377,7 @@ function get_5_36_for_gamers()
 			return (max($nums) + min($nums)) % 2 == 0;
 		}, $numbers, $numbers_prev, $array_res['SUM_MAX_MIN_GT_EVEN']);
 
-		for ($i = 1; $i <= 5; $i++) {
+		for ($i = 1; $i < 5; $i++) {
 			// $i-й номер Больше 18.5
 			calculate_case(function ($nums) use ($i) {
 				return $nums[$i - 1] > 18.5;
@@ -4353,13 +4470,7 @@ function get_5_36_for_gamers()
 			return $odd < 2;
 		}, $numbers, $numbers_prev, $array_res['ODD_LT_2']);
 
-		// Количество выпавших НЕчетных номеров Ровно 2
-		calculate_case(function ($nums) {
-			$odd = count(array_filter($nums, function ($num) {
-				return $num % 2 != 0;
-			}));
-			return $odd == 2;
-		}, $numbers, $numbers_prev, $array_res['ODD_EQ_2']);
+
 
 		// Количество выпавших НЕчетных номеров Больше 2
 		calculate_case(function ($nums) {
@@ -4375,16 +4486,9 @@ function get_5_36_for_gamers()
 				return $num % 2 == 0;
 			}));
 			return $even < 2;
-		}, $numbers, $numbers_prev, $array_res['ODD_LT_2']);
+		}, $numbers, $numbers_prev, $array_res['EVEN_LT_2']);
 
-		// Количество выпавших Четных номеров Ровно 2
-		calculate_case(function ($nums) {
-			$even = count(array_filter($nums, function ($num) {
-				return $num % 2 == 0;
-			}));
-			return $even == 2;
-		}, $numbers, $numbers_prev, $array_res['EVEN_EQ_2']);
-
+		
 		// Количество выпавших Четных номеров Больше 2
 		calculate_case(function ($nums) {
 			$even = count(array_filter($nums, function ($num) {
@@ -4447,21 +4551,6 @@ function get_5_36_for_gamers()
 			return count($filtered) == 1;
 		}, $numbers, $numbers_prev, $array_res['COUNT_1_10_EQ_1']);
 
-		// Количество выпавших номеров от 1 до 12 Ровно 2
-		calculate_case(function ($nums) {
-			$filtered = array_filter($nums, function ($num) {
-				return $num >= 1 && $num <= 12;
-			});
-			return count($filtered) == 2;
-		}, $numbers, $numbers_prev, $array_res['COUNT_1_12_EQ_2']);
-
-		// Количество выпавших номеров от 1 до 18 Ровно 2
-		calculate_case(function ($nums) {
-			$filtered = array_filter($nums, function ($num) {
-				return $num >= 1 && $num <= 18;
-			});
-			return count($filtered) == 2;
-		}, $numbers, $numbers_prev, $array_res['COUNT_1_18_EQ_2']);
 
 		// Количество выпавших номеров от 11 до 20 Ровно 1
 		calculate_case(function ($nums) {
@@ -4471,21 +4560,7 @@ function get_5_36_for_gamers()
 			return count($filtered) == 1;
 		}, $numbers, $numbers_prev, $array_res['COUNT_11_20_EQ_1']);
 
-		// Количество выпавших номеров от 13 до 24 Ровно 2
-		calculate_case(function ($nums) {
-			$filtered = array_filter($nums, function ($num) {
-				return $num >= 13 && $num <= 24;
-			});
-			return count($filtered) == 2;
-		}, $numbers, $numbers_prev, $array_res['COUNT_13_24_EQ_2']);
 
-		// Количество выпавших номеров от 19 до 36 Ровно 2
-		calculate_case(function ($nums) {
-			$filtered = array_filter($nums, function ($num) {
-				return $num >= 19 && $num <= 36;
-			});
-			return count($filtered) == 2;
-		}, $numbers, $numbers_prev, $array_res['COUNT_19_36_EQ_2']);
 
 		// Количество выпавших номеров от 21 до 30 Ровно 1
 		calculate_case(function ($nums) {
@@ -4494,14 +4569,6 @@ function get_5_36_for_gamers()
 			});
 			return count($filtered) == 1;
 		}, $numbers, $numbers_prev, $array_res['COUNT_21_30_EQ_1']);
-
-		// Количество выпавших номеров от 25 до 36 Ровно 2
-		calculate_case(function ($nums) {
-			$filtered = array_filter($nums, function ($num) {
-				return $num >= 25 && $num <= 36;
-			});
-			return count($filtered) == 2;
-		}, $numbers, $numbers_prev, $array_res['COUNT_25_36_EQ_2']);
 
 		// Количество выпавших номеров от 31 до 36 Ровно 1
 		calculate_case(function ($nums) {
@@ -4525,6 +4592,8 @@ function get_5_36_for_gamers()
 
 add_action('wp_ajax_insert_4_20_for_gamers', 'insert_from_table_4_20_for_gamers');
 add_action('wp_ajax_nopriv_insert_4_20_for_gamers', 'insert_from_table_4_20_for_gamers');
+
+
 function insert_from_table_4_20_for_gamers()
 {
 	global $wpdb;
@@ -4547,6 +4616,7 @@ function insert_from_table_4_20_for_gamers()
 
 add_action('wp_ajax_get_4_20_for_gamers', 'get_4_20_for_gamers');
 add_action('wp_ajax_nopriv_get_4_20_for_gamers', 'get_4_20_for_gamers');
+
 function get_4_20_for_gamers()
 {
 	global $wpdb;
@@ -4636,10 +4706,11 @@ function get_4_20_for_gamers()
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array(); foreach ($rows as $row) {
+	$numbers_prev = array(); 
+	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
 
-		for ($number = 7; $number <= 11; $i++) {
+		for ($number = 7; $number <= 11; $number++) {
 			// Любой из выпавших номеров кратен 7 (0 не кратное)
 			calculate_case(function ($nums) use ($number) {
 				$count = count($nums);
@@ -4648,7 +4719,7 @@ function get_4_20_for_gamers()
 						return true;
 					}
 				}return false;
-			}, $numbers, $numbers_prev, $array_res['ANY_DIV_' . $i]);
+			}, $numbers, $numbers_prev, $array_res['ANY_DIV_'.$number]);
 		}
 
 		// Наименьший выпавший номер Чет
@@ -4694,7 +4765,7 @@ function get_4_20_for_gamers()
 			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
-		for ($number = 37; $number <= 41; $i++) {
+		for ($number = 37; $number <= 41; $number++) {
 			// Сумма всех выпавших НЕчетных номеров Больше 37.5
 			calculate_case(function ($nums) use ($number) {
 				$filtered = array_filter($nums, function ($num) {
@@ -4734,7 +4805,8 @@ function get_4_20_for_gamers()
 		for ($number = 12; $number <= 18; $number++) {
 			// Разность наибольшего и наименьшего из выпавших номеров Больше $number + 0.5
 			calculate_case(function ($nums) use ($number) {
-				return (max($nums) - min($nums)) > ($number + 0.5);
+				
+				return max($nums) - min($nums) > ($number + 0.5);
 			}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_' . $number . '.5']);
 		}
 
@@ -4746,7 +4818,7 @@ function get_4_20_for_gamers()
 		}
 
 		for ($number = 1; $number <= 3; $number++) {
-			// Наименьший выпавший номер Больше 1.5
+			// Наименьший выпавший номер Больше $number+0.5
 			calculate_case(function ($nums) use ($number) {
 				return min($nums) > ($number + 0.5);
 			}, $numbers, $numbers_prev, $array_res['MIN_GT_' . $number . '.5']);
@@ -4788,6 +4860,13 @@ function get_4_20_for_gamers()
 	wp_die();
 }
 
+
+add_action('wp_ajax_insert_rapido_2_for_gamers', 'insert_from_table_rapido_2_for_gamers');
+add_action('wp_ajax_nopriv_insert_rapido_2_for_gamers', 'insert_from_table_rapido_2_for_gamers');
+
+
+
+
 add_action('wp_ajax_insert_rapido_2_for_gamers', 'insert_from_table_rapido_2_for_gamers');
 add_action('wp_ajax_nopriv_insert_rapido_2_for_gamers', 'insert_from_table_rapido_2_for_gamers');
 
@@ -4810,6 +4889,7 @@ function insert_from_table_rapido_2_for_gamers()
 
 	wp_die();
 }
+
 
 add_action('wp_ajax_get_rapido_2_for_gamers', 'get_rapido_2_for_gamers');
 add_action('wp_ajax_nopriv_get_rapido_2_for_gamers', 'get_rapido_2_for_gamers');
@@ -4917,8 +4997,11 @@ function get_rapido_2_for_gamers()
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array(); foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9);
+	$numbers_prev = array(); 
+	$special_prev = 0;
+	foreach ($rows as $row) {
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
+		$special = $row->NUMBER9;
 
 		for ($number = 1; $number <= 20; $number++) {
 			// Выпадет номер 1
@@ -4929,20 +5012,20 @@ function get_rapido_2_for_gamers()
 
 		for ($number = 1; $number <= 4; $number++) {
 			// Бонусный (Дополнительный) номер $number
-			calculate_case(function ($nums) use ($number) {
-				return end($nums) == $number;
-			}, $numbers, $numbers_prev, $array_res['DOP_NUM_' . $number]);
+			calculate_case(function ($num) use ($number) {
+				return $num == $number;
+			}, $special, $special_prev, $array_res['DOP_NUM_' . $number]);
 		}
 
 		// Бонусный (Дополнительный) номер Больше 2.5
-		calculate_case(function ($nums) {
-			return end($nums) > 2.5;
-		}, $numbers, $numbers_prev, $array_res['DOP_NUM_GT_2.5']);
+		calculate_case(function ($num) {
+			return $num > 2.5;
+		}, $special, $special_prev, $array_res['DOP_NUM_GT_2.5']);
 
 		// Бонусный (Дополнительный) номер Чет
-		calculate_case(function ($nums) {
-			return end($nums) % 2 == 0;
-		}, $numbers, $numbers_prev, $array_res['DOP_NUM_EVEN']);
+		calculate_case(function ($num) {
+			return $num % 2 == 0;
+		}, $special, $special_prev, $array_res['DOP_NUM_EVEN']);
 
 		// Сумма всех выпавших номеров Больше 77.5
 		calculate_case(function ($nums) {
@@ -5143,7 +5226,7 @@ function get_rapido_2_for_gamers()
 			$odd = array_filter($nums, function ($num) {
 				return $num % 2 != 0;
 			});
-			return $even > $odd;
+			return array_sum($even) > array_sum($odd);
 		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_SUM_ODD']);
 
 		// Количество выпавших НЕчетных номеров Меньше 4
@@ -5314,7 +5397,7 @@ function get_rapido_2_for_gamers()
 			return $filtered > 2;
 		}, $numbers, $numbers_prev, $array_res['COUNT_15_20_GT_2']);
 
-
+		$special_prev = $special;
 		$numbers_prev = $numbers;
 	}
 
@@ -5327,6 +5410,7 @@ function get_rapido_2_for_gamers()
 }
 add_action('wp_ajax_insert_24_12_for_gamers', 'insert_from_table_24_12_for_gamers');
 add_action('wp_ajax_nopriv_insert_24_12_for_gamers', 'insert_from_table_24_12_for_gamers');
+
 
 function insert_from_table_24_12_for_gamers()
 {
@@ -5346,6 +5430,7 @@ function insert_from_table_24_12_for_gamers()
 
 	wp_die();
 }
+
 
 add_action('wp_ajax_get_24_12_for_gamers', 'get_24_12_for_gamers');
 add_action('wp_ajax_nopriv_get_24_12_for_gamers', 'get_24_12_for_gamers');
@@ -5538,7 +5623,7 @@ function get_24_12_for_gamers()
 			$filtered = array_filter($nums, function ($num) {
 				return $num % 2 != 0;
 			});
-			return count($filtered) > 67.5;
+			return array_sum($filtered) > 67.5;
 		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_GT_67.5']);
 
 		// Сумма всех выпавших Нечетных номеров Больше 71.5
@@ -5549,7 +5634,7 @@ function get_24_12_for_gamers()
 					return $num % 2 != 0;
 				}
 			);
-			return count($filtered) > 71.5;
+			return array_sum($filtered) > 71.5;
 		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_GT_71.5']);
 
 		// Сумма всех выпавших Нечетных номеров Больше 75.5
@@ -5560,7 +5645,7 @@ function get_24_12_for_gamers()
 					return $num % 2 != 0;
 				}
 			);
-			return count($filtered) > 75.5;
+			return array_sum($filtered) > 75.5;
 		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_GT_75.5']);
 
 		// Сумма всех выпавших Четных номеров Больше 68.5
@@ -5733,7 +5818,7 @@ function get_24_12_for_gamers()
 					return $num % 2 != 0;
 				}
 			);
-			return $even > $odd;
+			return array_sum($even) > array_sum($odd);
 		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_SUM_ODD']);
 
 		// Количество выпавших НЕчетных номеров Меньше 6
@@ -6021,8 +6106,11 @@ function get_24_12_for_gamers()
 	wp_die();
 }
 
+
+
 add_action('wp_ajax_insert_duel_for_gamers', 'insert_from_table_duel_for_gamers');
 add_action('wp_ajax_nopriv_insert_duel_for_gamers', 'insert_from_table_duel_for_gamers');
+
 
 function insert_from_table_duel_for_gamers()
 {
@@ -6042,6 +6130,7 @@ function insert_from_table_duel_for_gamers()
 
 	wp_die();
 }
+
 
 add_action('wp_ajax_get_duel_for_gamers', 'get_duel_for_gamers');
 add_action('wp_ajax_nopriv_get_duel_for_gamers', 'get_duel_for_gamers');
@@ -6152,7 +6241,7 @@ function get_duel_for_gamers()
 		'NUM_DIV_6',
 		'NUM_DIV_7',
 		'NUM_DIV_8',
-		'COUNT_EVEN_LT_2',
+		'COUNT_ODD_LT_2',
 		'COUNT_ODD_EQ_2',
 		'COUNT_ODD_GT_2',
 		'COUNT_EVEN_LT_2',
@@ -6196,7 +6285,7 @@ function get_duel_for_gamers()
 			//Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res["NUM_" . $i]);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
 		for ($number = 2; $number <= 6; $number++) {
@@ -6481,6 +6570,7 @@ function get_duel_for_gamers()
 
 		for ($number = 4; $number <= 8; $number++) {
 			// Любой из выпавших номеров кратен $number (0-не кратное)
+			if($number == 5) continue;
 			calculate_case(function ($nums) use ($number) {
 				$count = count($nums);
 				for ($i = 0; $i < $count; $i++) {
@@ -6488,7 +6578,7 @@ function get_duel_for_gamers()
 						return true;
 					}
 				}
-
+				
 				return false;
 			}, $numbers, $numbers_prev, $array_res['NUM_DIV_' . $number]);
 		}
@@ -6499,7 +6589,7 @@ function get_duel_for_gamers()
 				return $num % 2 != 0;
 			}));
 			return $filtered < 2;
-		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_LT_2']);
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_LT_2']);
 
 		// Количество выпавших Нечетных номеров ровно 2
 		calculate_case(function ($nums) {
@@ -6507,7 +6597,7 @@ function get_duel_for_gamers()
 				return $num % 2 != 0;
 			}));
 			return $filtered == 2;
-		}, $numbers, $numbers_prev, $array_res['COUNT_EVEN_LT_2']);
+		}, $numbers, $numbers_prev, $array_res['COUNT_ODD_LT_2']);
 
 		// Количество выпавших Нечетных номеров больше 2
 		calculate_case(function ($nums) {
@@ -6749,6 +6839,7 @@ function get_duel_for_gamers()
 add_action('wp_ajax_insert_top_3_for_gamers', 'insert_from_table_top_3_for_gamers');
 add_action('wp_ajax_nopriv_insert_top_3_for_gamers', 'insert_from_table_top_3_for_gamers');
 
+
 function insert_from_table_top_3_for_gamers()
 {
 	global $wpdb;
@@ -6767,6 +6858,7 @@ function insert_from_table_top_3_for_gamers()
 
 	wp_die();
 }
+
 
 add_action('wp_ajax_get_top_3_for_gamers', 'get_top_3_for_gamers');
 add_action('wp_ajax_nopriv_get_top_3_for_gamers', 'get_top_3_for_gamers');
@@ -6876,6 +6968,7 @@ function get_top_3_for_gamers()
 		}, $numbers, $numbers_prev, $array_res['SUM_GT_10.5']);
 
 		for ($number = 12; $number <= 16; $number++) {
+			if($number == 15) continue;
 			// Сумма всех выпавших номеров Больше 12.5
 			calculate_case(function ($nums) use ($number) {
 				return array_sum($nums) > ($number + 0.5);
@@ -6890,7 +6983,8 @@ function get_top_3_for_gamers()
 			$odd = array_filter($nums, function ($num) {
 				return $num % 2 != 0;
 			});
-			return $even > $odd;
+
+			return array_sum($even) > array_sum($odd);
 		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_SUM_ODD']);
 
 		// Сумма всех выпавших номеров от 0 до 3 Больше 1.5
@@ -7098,7 +7192,7 @@ function get_top_3_for_gamers()
 		}, $numbers, $numbers_prev, $array_res['NUM_DIV_4']);
 
 		for ($number = 1; $number <= 9; $number++) {
-			// Выпадет номер 1
+			// Выпадет номер $i
 			calculate_case(function ($nums) use ($number) {
 				return in_array($number, $nums);
 			}, $numbers, $numbers_prev, $array_res['NUM_' . $number]);
@@ -7199,6 +7293,8 @@ function get_top_3_for_gamers()
 
 add_action('wp_ajax_insert_keno_for_gamers', 'insert_from_table_keno_for_gamers');
 add_action('wp_ajax_nopriv_insert_keno_for_gamers', 'insert_from_table_keno_for_gamers');
+
+
 function insert_from_table_keno_for_gamers()
 {
 	global $wpdb;
@@ -7211,7 +7307,7 @@ function insert_from_table_keno_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_keno_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_keno_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19] . ',' . $item->numbers[20] . ',' . $item->numbers[21] . ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_keno_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19]. ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -7221,6 +7317,7 @@ function insert_from_table_keno_for_gamers()
 
 add_action('wp_ajax_get_keno_for_gamers', 'get_keno_for_gamers');
 add_action('wp_ajax_nopriv_get_keno_for_gamers', 'get_keno_for_gamers');
+
 function get_keno_for_gamers()
 {
 	global $wpdb;
@@ -7318,8 +7415,6 @@ function get_keno_for_gamers()
 		'MAX_GT_77.5',
 		'MAX_GT_78.5',
 		'MAX_GT_79.5',
-		'ANY_DIV_15',
-		'ANY_DIV_20',
 		'COUNT_1_20_GT_4.5',
 		'COUNT_21_40_GT_4.5',
 		'COUNT_41_60_GT_4.5',
@@ -7406,7 +7501,8 @@ function get_keno_for_gamers()
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array(); foreach ($rows as $row) {
+	$numbers_prev = array(); 
+	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15, $row->NUMBER16, $row->NUMBER17, $row->NUMBER18, $row->NUMBER19, $row->NUMBER20);
 		for ($number = 11; $number <= 80; $number++) {
 			// Любой из выпавших номеров кратен $number
@@ -7474,25 +7570,6 @@ function get_keno_for_gamers()
 			}, $numbers, $numbers_prev, $array_res['MAX_GT_' . $number . '.5']);
 		}
 
-		// Любой из выпавших номеров кратен 15
-		calculate_case(function ($nums) {
-			$count = count($nums);
-			for ($i = 0; $i < $count; $i++) {
-				if ($nums[$i] % 15 == 0) {
-					return true;
-				}
-			}return false;
-		}, $numbers, $numbers_prev, $array_res['ANY_DIV_15']);
-
-		// Любой из выпавших номеров кратен 20
-		calculate_case(function ($nums) {
-			$count = count($nums);
-			for ($i = 0; $i < $count; $i++) {
-				if ($nums[$i] % 20 == 0) {
-					return true;
-				}
-			}return false;
-		}, $numbers, $numbers_prev, $array_res['ANY_DIV_20']);
 
 		// Количество выпавших номеров от 1 до 20 Больше 4.5
 		calculate_case(function ($nums) {
@@ -7776,6 +7853,8 @@ function get_keno_for_gamers()
 
 add_action('wp_ajax_insert_6_36_for_gamers', 'insert_from_table_6_36_for_gamers');
 add_action('wp_ajax_nopriv_insert_6_36_for_gamers', 'insert_from_table_6_36_for_gamers');
+
+
 function insert_from_table_6_36_for_gamers()
 {
 	global $wpdb;
@@ -7798,6 +7877,7 @@ function insert_from_table_6_36_for_gamers()
 
 add_action('wp_ajax_get_6_36_for_gamers', 'get_6_36_for_gamers');
 add_action('wp_ajax_nopriv_get_6_36_for_gamers', 'get_6_36_for_gamers');
+
 function get_6_36_for_gamers()
 {
 	global $wpdb;
@@ -7903,7 +7983,8 @@ function get_6_36_for_gamers()
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6);
 
 		for ($number = 4; $number <= 36; $number++) {
-			// Любой из выпавших номеров кратен 4 (0 не кратное)
+			if($number == 32) continue;
+			// Любой из выпавших номеров кратен $number (0 не кратное)
 			calculate_case(function ($nums) use ($number) {
 				$count = count($nums);
 				for ($i = 0; $i < $count; $i++) {
@@ -8071,6 +8152,8 @@ function get_6_36_for_gamers()
 
 add_action('wp_ajax_insert_rocketbingo_for_gamers', 'insert_from_table_rocketbingo_for_gamers');
 add_action('wp_ajax_nopriv_insert_rocketbingo_for_gamers', 'insert_from_table_rocketbingo_for_gamers');
+
+
 function insert_from_table_rocketbingo_for_gamers()
 {
 	global $wpdb;
@@ -8093,6 +8176,7 @@ function insert_from_table_rocketbingo_for_gamers()
 
 add_action('wp_ajax_get_rocketbingo_for_gamers', 'get_rocketbingo_for_gamers');
 add_action('wp_ajax_nopriv_get_rocketbingo_for_gamers', 'get_rocketbingo_for_gamers');
+
 function get_rocketbingo_for_gamers()
 {
 	global $wpdb;
@@ -8297,21 +8381,21 @@ function get_rocketbingo_for_gamers()
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res["NUM_$i"]);
+			}, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
 		}
 
 		for ($i = 1; $i <= 35; $i++) {
 			// $i-й номер больше 37.5
 			calculate_case(function ($nums) use ($i) {
 				return $nums[$i - 1] > 37.5;
-			}, $numbers, $numbers_prev, $array_res["NUM_" . $i . "_GT_37.5"]);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i . '_GT_37.5']);
 		}
 
 		for ($i = 1; $i <= 35; $i++) {
 			// $i-й номер Чет
-			calculate_case(function ($nums) {
-				return $nums[1 - 1] % 2 == 0;
-			}, $numbers, $numbers_prev, $array_res["NUM_" . $i . "_EVEN"]);
+			calculate_case(function ($nums) use($i) {
+				return $nums[$i - 1] % 2 == 0;
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i . '_EVEN']);
 		}
 
 		for ($number = 1326; $number <= 1330; $number++) {
@@ -8341,6 +8425,7 @@ function get_rocketbingo_for_gamers()
 					return $num % 2 == 0;
 				});
 				return array_sum($filtered) > ($number + 0.5);
+
 			}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_' . $number . '.5']);
 		}
 
@@ -8351,6 +8436,7 @@ function get_rocketbingo_for_gamers()
 					return $num % 2 != 0;
 				});
 				return count($filtered) > ($number + 0.5);
+			
 			}, $numbers, $numbers_prev, $array_res['COUNT_ODD_GT_' . $number . '.5']);
 		}
 
@@ -8721,6 +8807,8 @@ function get_rocketbingo_for_gamers()
 
 add_action('wp_ajax_insert_7_49_for_gamers', 'insert_from_table_7_49_for_gamers');
 add_action('wp_ajax_nopriv_insert_7_49_for_gamers', 'insert_from_table_7_49_for_gamers');
+
+
 function insert_from_table_7_49_for_gamers()
 {
 	global $wpdb;
@@ -8743,6 +8831,7 @@ function insert_from_table_7_49_for_gamers()
 
 add_action('wp_ajax_get_7_49_for_gamers', 'get_7_49_for_gamers');
 add_action('wp_ajax_nopriv_get_7_49_for_gamers', 'get_7_49_for_gamers');
+
 function get_7_49_for_gamers()
 {
 	global $wpdb;
@@ -9112,6 +9201,8 @@ function get_7_49_for_gamers()
 
 add_action('wp_ajax_insert_bingo_75_for_gamers', 'insert_from_table_bingo_75_for_gamers');
 add_action('wp_ajax_nopriv_insert_bingo_75_for_gamers', 'insert_from_table_bingo_75_for_gamers');
+
+
 function insert_from_table_bingo_75_for_gamers()
 {
 	global $wpdb;
@@ -9131,8 +9222,10 @@ function insert_from_table_bingo_75_for_gamers()
 	wp_die();
 }
 
+
 add_action('wp_ajax_get_bingo_75_for_gamers', 'get_bingo_75_for_gamers');
 add_action('wp_ajax_nopriv_get_bingo_75_for_gamers', 'get_bingo_75_for_gamers');
+
 function get_bingo_75_for_gamers()
 {
 	global $wpdb;
@@ -9413,8 +9506,12 @@ function get_bingo_75_for_gamers()
 	wp_die();
 }
 
+
+
 add_action('wp_ajax_insert_velikolepnaya_8_for_gamers', 'insert_from_table_velikolepnaya_8_for_gamers');
 add_action('wp_ajax_nopriv_insert_velikolepnaya_8_for_gamers', 'insert_from_table_velikolepnaya_8_for_gamers');
+
+
 function insert_from_table_velikolepnaya_8_for_gamers()
 {
 	global $wpdb;
@@ -9437,6 +9534,7 @@ function insert_from_table_velikolepnaya_8_for_gamers()
 
 add_action('wp_ajax_get_velikolepnaya_8_for_gamers', 'get_velikolepnaya_8_for_gamers');
 add_action('wp_ajax_nopriv_get_velikolepnaya_8_for_gamers', 'get_velikolepnaya_8_for_gamers');
+
 function get_velikolepnaya_8_for_gamers()
 {
 	global $wpdb;
@@ -9521,10 +9619,8 @@ function get_velikolepnaya_8_for_gamers()
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$special_prev = 0;
 	$numbers_prev = array(); foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
-		$special = $row->NUMBER9;
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9);
 
 		for ($number = 1; $number <= 20; $number++) {
 			// Выпадет номер $number
@@ -9547,7 +9643,7 @@ function get_velikolepnaya_8_for_gamers()
 		for ($number = 7; $number <= 12; $number++) {
 			if ($number == 10)
 				continue;
-			// Любой из выпавших номеров кратен $number (0 не кратное)
+			// Любой из выпавших номеров кратен 7 (0 не кратное)
 			calculate_case(function ($nums) use ($number) {
 				$count = count($nums);
 				for ($i = 0; $i < $count; $i++) {
@@ -9672,6 +9768,7 @@ function get_velikolepnaya_8_for_gamers()
 add_action('wp_ajax_insert_lavina_prizov_for_gamers', 'insert_from_table_lavina_prizov_for_gamers');
 add_action('wp_ajax_nopriv_insert_lavina_prizov_for_gamers', 'insert_from_table_lavina_prizov_for_gamers');
 
+
 function insert_from_table_lavina_prizov_for_gamers()
 {
 	global $wpdb;
@@ -9694,6 +9791,7 @@ function insert_from_table_lavina_prizov_for_gamers()
 
 add_action('wp_ajax_get_lavina_prizov_for_gamers', 'get_lavina_prizov_for_gamers');
 add_action('wp_ajax_nopriv_get_lavina_prizov_for_gamers', 'get_lavina_prizov_for_gamers');
+
 function get_lavina_prizov_for_gamers()
 {
 	global $wpdb;
@@ -9817,17 +9915,16 @@ function get_lavina_prizov_for_gamers()
 
 		// Выпадут совпадающие номера на разных полях
 		calculate_case(function ($nums) {
-			$field1 = array_slice($nums, 0, 4);
-			$field2 = array_slice($nums, 4);
-
-			for ($i = 0; $i < count($field1); $i++) {
-				for ($j = 0; $j < count($field2); $j++) {
-					if ($field1[$i] == $field2[$j]) {
+			$field1 = array_slice($nums,0,4);
+			$field2 = array_slice($nums,4);
+			
+			for($i=0;$i<count($field1);$i++){
+				for($j=0;$j<count($field2);$j++){
+					if($field1[$i] == $field2[$j]){
 						return true;
 					}
 				}
 			}
-
 			return false;
 		}, $numbers, $numbers_prev, $array_res['ADJACENT_NUMBERS_DIFF_FIELDS']);
 
