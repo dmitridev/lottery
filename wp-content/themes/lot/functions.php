@@ -9520,10 +9520,14 @@ function get_velikolepnaya_8_for_gamers()
 
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
-
-	$numbers_prev = array(); foreach ($rows as $row) {
-		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9);
-
+	
+	$special_prev = 0;
+	$numbers_prev = array(); 
+	
+	foreach ($rows as $row) {
+		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
+		$special = $row->NUMBER9;
+		
 		for ($number = 1; $number <= 20; $number++) {
 			// Выпадет номер $number
 			calculate_case(function ($nums) use ($number) {
