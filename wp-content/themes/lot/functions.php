@@ -198,49 +198,7 @@ function register_post_types()
 	]);
 }
 
-function filter_numbers(array $range, array $numbers)
-{
-	return array_filter($range, function ($num) use ($numbers) {
-		return !in_array($num, $numbers);
-	});
-}
-
-function prepare_table_values()
-{
-	return array('VALUE_YES_NOW' => 0, 'VALUE_NO_NOW' => 0, 'VALUE_YES_MAX' => 0, 'VALUE_NO_MAX' => 0);
-}
-
-
-// $value_to_change = array('VALUE_YES_NOW' => 0, 'VALUE_NO_NOW' => 0, 'VALUE_YES_MAX' => 0, 'VALUE_NO_MAX' => 0);
-function calculate_case($condition, &$numbers, &$numbers_prev, &$value_to_change)
-{
-	$condition_result = $condition($numbers);
-	$condition_result_prev = $condition($numbers_prev);
-
-	if ($condition_result)
-		if ($condition_result_prev)
-			$value_to_change['VALUE_YES_NOW'] += 1;
-		else {
-			$value_to_change['VALUE_YES_NOW'] = 1;
-			$value_to_change['VALUE_NO_NOW'] = 0;
-		}
-
-
-	if (!$condition_result)
-		if (!$condition_result_prev)
-			$value_to_change['VALUE_NO_NOW'] += 1;
-		else {
-			$value_to_change['VALUE_NO_NOW'] = 1;
-			$value_to_change['VALUE_YES_NOW'] = 0;
-		}
-
-
-	if ($value_to_change['VALUE_YES_MAX'] < $value_to_change['VALUE_YES_NOW'])
-		$value_to_change['VALUE_YES_MAX'] = $value_to_change['VALUE_YES_NOW'];
-
-	if ($value_to_change['VALUE_NO_MAX'] < $value_to_change['VALUE_NO_NOW'])
-		$value_to_change['VALUE_NO_MAX'] = $value_to_change['VALUE_NO_NOW'];
-}
+include_once __DIR__ . '/lotteries.php';
 
 add_action('wp_ajax_insert_mechtalion_for_participants', 'insert_from_table_mechtalion_for_participants');
 add_action('wp_ajax_nopriv_insert_mechtalion_for_participants', 'insert_from_table_mechtalion_for_participants');
@@ -254,13 +212,10 @@ function insert_from_table_mechtalion_for_participants()
 	} else
 		wp_die();
 
-	$wpdb->query('DELETE FROM `wp_lottery_mechtalion_for_participants`');
-	var_dump($rows);
-	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_mechtalion_for_participants` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22,NUMBER23,NUMBER24,NUMBER25,NUMBER26,NUMBER27,NUMBER28,NUMBER29,NUMBER30,NUMBER31,NUMBER32,NUMBER33,NUMBER34,NUMBER35,NUMBER36,NUMBER37) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19] . ',' . $item->numbers[20] . ',' . $item->numbers[21] . ',' . $item->numbers[22] . ',' . $item->numbers[23] . ',' . $item->numbers[24] . ',' . $item->numbers[25] . ',' . $item->numbers[26] . ',' . $item->numbers[27] . ',' . $item->numbers[28] . ',' . $item->numbers[29] . ',' . $item->numbers[30] . ',' . $item->numbers[31] . ',' . $item->numbers[32] . ',' . $item->numbers[33] . ',' . $item->numbers[34] . ',' . $item->numbers[35] . ',' . $item->numbers[36] . ")";
-		$wpdb->query($sql_request_about_insert);
-	}
+	
+	insert_values_to_table('mechtalion_for_participants', 37, $rows);
 
+	echo json_encode(['success' => 'true'],true);
 	wp_die();
 }
 
@@ -270,36 +225,19 @@ add_action('wp_ajax_nopriv_get_mechtalion_for_participants', 'get_mechtalion_for
 
 function get_mechtalion_for_participants()
 {
-	global $wpdb;
-	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_mechtalion_for_participants`');
-
-	$array_res = array();
-
-	for ($i = 1; $i <= 80; $i++) {
-		$array_res['NUM_' . $i] = prepare_table_values();
-	}
-	// тут нужны невыпавшие числа.
-	$numbers_prev = array();
-
-	foreach ($rows as $row) {
-		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15, $row->NUMBER16, $row->NUMBER17, $row->NUMBER18, $row->NUMBER19, $row->NUMBER20, $row->NUMBER21, $row->NUMBER22, $row->NUMBER23, $row->NUMBER24, $row->NUMBER25, $row->NUMBER26, $row->NUMBER27, $row->NUMBER28, $row->NUMBER29, $row->NUMBER30, $row->NUMBER31, $row->NUMBER32, $row->NUMBER33, $row->NUMBER34, $row->NUMBER35, $row->NUMBER36, $row->NUMBER37);
-		$numbers = filter_numbers(range(1, 80), $array);
-
-		for ($i = 1; $i <= 80; $i++) {
-			// выпадет номер $i
-			calculate_case(function ($nums) use ($i) {
-				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
-
-		}
-		$numbers_prev = $numbers;
-	}
-
-	foreach ($array_res as $key => $res) {
-		$wpdb->query("UPDATE `wp_lottery_results` SET VALUE_YES=" . $res['VALUE_YES_MAX'] . ", VALUE_NO=" . $res['VALUE_NO_MAX'] . ", VALUE_YES_NOW=" . $res['VALUE_YES_NOW'] . ", VALUE_NO_NOW=" . $res['VALUE_NO_NOW'] . " where LOTO_TYPE='mechtalion_for_participants' and VALUE_ID='" . $key . "'");
-	}
-
+	// берём список рядов
+	$rows = get_table_rows('mechtalion_for_participants');
+	// берём список ключей для условий
+	$keys = get_table_keys('mechtalion_for_participants');
+	// заполняем их нулевыми значениями.
+	$array_res = init_table_values($keys);
+	// рассчитываем результаты
+	$array_res = calculate_cases_mecthalion_for_participants($rows, $array_res);
+	// сохраняем результаты в таблицу
+	save_table_results_to_database('mechtalion_for_participants', $array_res);
+	// выводим значение 
 	echo json_encode(array("results" => $array_res, "update" => date('Y:m:d H:i:s')));
+	
 	wp_die();
 }
 
@@ -563,7 +501,6 @@ function get_3_3_for_participants()
 add_action('wp_ajax_insert_velikolepnaya_8_for_participants', 'insert_from_table_velikolepnaya_8_for_participants');
 add_action('wp_ajax_nopriv_insert_velikolepnaya_8_for_participants', 'insert_from_table_velikolepnaya_8_for_participants');
 
-
 function insert_from_table_velikolepnaya_8_for_participants()
 {
 	global $wpdb;
@@ -666,8 +603,8 @@ function get_lavina_prizov_for_participants()
 	$array_res = array();
 
 	for ($i = 1; $i <= 20; $i++) {
-		$array_res['FIELD_1_NUM_'.$i] = prepare_table_values();
-		$array_res['FIELD_2_NUM_'.$i] = prepare_table_values();
+		$array_res['FIELD_1_NUM_' . $i] = prepare_table_values();
+		$array_res['FIELD_2_NUM_' . $i] = prepare_table_values();
 	}
 
 	$numbers_prev = array();
@@ -681,12 +618,12 @@ function get_lavina_prizov_for_participants()
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res["FIELD_1_NUM_".$i]);
+			}, $numbers, $numbers_prev, $array_res["FIELD_1_NUM_" . $i]);
 
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers_2, $numbers_2_prev, $array_res["FIELD_2_NUM_".$i]);
+			}, $numbers_2, $numbers_2_prev, $array_res["FIELD_2_NUM_" . $i]);
 		}
 
 		$numbers_2_prev = $numbers_2;
@@ -730,6 +667,11 @@ add_action('wp_ajax_nopriv_get_6_45_for_participants', 'get_6_45_for_participant
 
 function get_6_45_for_participants()
 {
+	// $keys = get_keys('6_45_for_participants');
+	// $array_res = init_array_of_result($keys,'6_45_for_participants');
+	// $array_res = calculate_values('6_45_for_participants');
+	// save_table_results_to_database('6_45_for_participants');
+
 	global $wpdb;
 	$rows = $wpdb->get_results('SELECT * FROM `wp_lottery_6_45_for_participants`');
 
@@ -835,11 +777,8 @@ function get_5_36_for_participants()
 }
 
 
-
 add_action('wp_ajax_insert_4_20_for_participants', 'insert_from_table_4_20_for_participants');
 add_action('wp_ajax_nopriv_insert_4_20_for_participants', 'insert_from_table_4_20_for_participants');
-
-
 function insert_from_table_4_20_for_participants()
 {
 	global $wpdb;
@@ -859,10 +798,8 @@ function insert_from_table_4_20_for_participants()
 	wp_die();
 }
 
-
 add_action('wp_ajax_get_4_20_for_participants', 'get_4_20_for_participants');
 add_action('wp_ajax_nopriv_get_4_20_for_participants', 'get_4_20_for_participants');
-
 function get_4_20_for_participants()
 {
 	global $wpdb;
@@ -908,8 +845,6 @@ function get_4_20_for_participants()
 
 add_action('wp_ajax_insert_rapido_for_participants', 'insert_from_table_rapido_for_participants');
 add_action('wp_ajax_nopriv_insert_rapido_for_participants', 'insert_from_table_rapido_for_participants');
-
-
 function insert_from_table_rapido_for_participants()
 {
 	global $wpdb;
@@ -932,7 +867,6 @@ function insert_from_table_rapido_for_participants()
 
 add_action('wp_ajax_get_rapido_for_participants', 'get_rapido_for_participants');
 add_action('wp_ajax_nopriv_get_rapido_for_participants', 'get_rapido_for_participants');
-
 function get_rapido_for_participants()
 {
 	global $wpdb;
@@ -986,8 +920,6 @@ function get_rapido_for_participants()
 
 add_action('wp_ajax_insert_rapido_2_for_participants', 'insert_from_table_rapido_2_for_participants');
 add_action('wp_ajax_nopriv_insert_rapido_2_for_participants', 'insert_from_table_rapido_2_for_participants');
-
-
 function insert_from_table_rapido_2_for_participants()
 {
 	global $wpdb;
@@ -1010,7 +942,6 @@ function insert_from_table_rapido_2_for_participants()
 
 add_action('wp_ajax_get_rapido_2_for_participants', 'get_rapido_2_for_participants');
 add_action('wp_ajax_nopriv_get_rapido_2_for_participants', 'get_rapido_2_for_participants');
-
 function get_rapido_2_for_participants()
 {
 	global $wpdb;
@@ -1105,7 +1036,6 @@ function insert_from_table_rapido_for_gamers()
 
 	wp_die();
 }
-
 
 add_action('wp_ajax_get_rapido_for_gamers', 'get_rapido_for_gamers');
 add_action('wp_ajax_nopriv_get_rapido_for_gamers', 'get_rapido_for_gamers');
@@ -1756,8 +1686,6 @@ function get_duel_for_participants()
 }
 add_action('wp_ajax_insert_top3_for_participants', 'insert_from_table_top3_for_participants');
 add_action('wp_ajax_nopriv_insert_top3_for_participants', 'insert_from_table_top3_for_participants');
-
-
 function insert_from_table_top3_for_participants()
 {
 	global $wpdb;
@@ -1780,7 +1708,6 @@ function insert_from_table_top3_for_participants()
 
 add_action('wp_ajax_get_top3_for_participants', 'get_top3_for_participants');
 add_action('wp_ajax_nopriv_get_top3_for_participants', 'get_top3_for_participants');
-
 function get_top3_for_participants()
 {
 	global $wpdb;
@@ -1817,8 +1744,6 @@ function get_top3_for_participants()
 
 add_action('wp_ajax_insert_keno_for_participants', 'insert_from_table_keno_for_participants');
 add_action('wp_ajax_nopriv_insert_keno_for_participants', 'insert_from_table_keno_for_participants');
-
-
 function insert_from_table_keno_for_participants()
 {
 	global $wpdb;
@@ -1840,7 +1765,6 @@ function insert_from_table_keno_for_participants()
 
 add_action('wp_ajax_get_keno_for_participants', 'get_keno_for_participants');
 add_action('wp_ajax_nopriv_get_keno_for_participants', 'get_keno_for_participants');
-
 function get_keno_for_participants()
 {
 	global $wpdb;
@@ -1922,8 +1846,6 @@ function get_keno_for_participants()
 
 add_action('wp_ajax_insert_6_36_for_participants', 'insert_from_table_6_36_for_participants');
 add_action('wp_ajax_nopriv_insert_6_36_for_participants', 'insert_from_table_6_36_for_participants');
-
-
 function insert_from_table_6_36_for_participants()
 {
 	global $wpdb;
@@ -1946,7 +1868,6 @@ function insert_from_table_6_36_for_participants()
 
 add_action('wp_ajax_get_6_36_for_participants', 'get_6_36_for_participants');
 add_action('wp_ajax_nopriv_get_6_36_for_participants', 'get_6_36_for_participants');
-
 function get_6_36_for_participants()
 {
 	global $wpdb;
@@ -1982,8 +1903,6 @@ function get_6_36_for_participants()
 
 add_action('wp_ajax_insert_rocketbingo_for_participants', 'insert_from_table_rocketbingo_for_participants');
 add_action('wp_ajax_nopriv_insert_rocketbingo_for_participants', 'insert_from_table_rocketbingo_for_participants');
-
-
 function insert_from_table_rocketbingo_for_participants()
 {
 	global $wpdb;
@@ -2006,7 +1925,6 @@ function insert_from_table_rocketbingo_for_participants()
 
 add_action('wp_ajax_get_rocketbingo_for_participants', 'get_rocketbingo_for_participants');
 add_action('wp_ajax_nopriv_get_rocketbingo_for_participants', 'get_rocketbingo_for_participants');
-
 function get_rocketbingo_for_participants()
 {
 	global $wpdb;
@@ -2042,8 +1960,6 @@ function get_rocketbingo_for_participants()
 
 add_action('wp_ajax_insert_7_49_for_participants', 'insert_from_table_7_49_for_participants');
 add_action('wp_ajax_nopriv_insert_7_49_for_participants', 'insert_from_table_7_49_for_participants');
-
-
 function insert_from_table_7_49_for_participants()
 {
 	global $wpdb;
@@ -2066,7 +1982,6 @@ function insert_from_table_7_49_for_participants()
 
 add_action('wp_ajax_get_7_49_for_participants', 'get_7_49_for_participants');
 add_action('wp_ajax_nopriv_get_7_49_for_participants', 'get_7_49_for_participants');
-
 function get_7_49_for_participants()
 {
 	global $wpdb;
@@ -2102,8 +2017,6 @@ function get_7_49_for_participants()
 
 add_action('wp_ajax_insert_bingo_75_for_participants', 'insert_from_table_bingo_75_for_participants');
 add_action('wp_ajax_nopriv_insert_bingo_75_for_participants', 'insert_from_table_bingo_75_for_participants');
-
-
 function insert_from_table_bingo_75_for_participants()
 {
 	global $wpdb;
@@ -2126,7 +2039,6 @@ function insert_from_table_bingo_75_for_participants()
 
 add_action('wp_ajax_get_bingo_75_for_participants', 'get_bingo_75_for_participants');
 add_action('wp_ajax_nopriv_get_bingo_75_for_participants', 'get_bingo_75_for_participants');
-
 function get_bingo_75_for_participants()
 {
 	global $wpdb;
@@ -2164,8 +2076,6 @@ function get_bingo_75_for_participants()
 
 add_action('wp_ajax_insert_rus_loto_for_participants', 'insert_from_table_rus_loto_for_participants');
 add_action('wp_ajax_nopriv_insert_rus_loto_for_participants', 'insert_from_table_rus_loto_for_participants');
-
-
 function insert_from_table_rus_loto_for_participants()
 {
 	global $wpdb;
@@ -2188,7 +2098,6 @@ function insert_from_table_rus_loto_for_participants()
 
 add_action('wp_ajax_get_rus_loto_for_participants', 'get_rus_loto_for_participants');
 add_action('wp_ajax_nopriv_get_rus_loto_for_participants', 'get_rus_loto_for_participants');
-
 function get_rus_loto_for_participants()
 {
 	global $wpdb;
@@ -2203,7 +2112,7 @@ function get_rus_loto_for_participants()
 
 	foreach ($rows as $row) {
 		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
-		$numbers = filter_numbers(range(1,90),$array);
+		$numbers = filter_numbers(range(1, 90), $array);
 
 		for ($i = 1; $i <= 90; $i++) {
 			// Выпадет номер $i
@@ -2211,7 +2120,7 @@ function get_rus_loto_for_participants()
 				return in_array($i, $nums);
 			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
-		
+
 		$numbers_prev = $numbers;
 	}
 
@@ -2225,8 +2134,6 @@ function get_rus_loto_for_participants()
 
 add_action('wp_ajax_insert_loto_express_for_participants', 'insert_from_table_loto_express_for_participants');
 add_action('wp_ajax_nopriv_insert_loto_express_for_participants', 'insert_from_table_loto_express_for_participants');
-
-
 function insert_from_table_loto_express_for_participants()
 {
 	global $wpdb;
@@ -2249,7 +2156,6 @@ function insert_from_table_loto_express_for_participants()
 
 add_action('wp_ajax_get_loto_express_for_participants', 'get_loto_express_for_participants');
 add_action('wp_ajax_nopriv_get_loto_express_for_participants', 'get_loto_express_for_participants');
-
 function get_loto_express_for_participants()
 {
 	global $wpdb;
@@ -2287,8 +2193,6 @@ function get_loto_express_for_participants()
 
 add_action('wp_ajax_insert_bolshoe_sportloto_for_participants', 'insert_from_table_bolshoe_sportloto_for_participants');
 add_action('wp_ajax_nopriv_insert_bolshoe_sportloto_for_participants', 'insert_from_table_bolshoe_sportloto_for_participants');
-
-
 function insert_from_table_bolshoe_sportloto_for_participants()
 {
 	global $wpdb;
@@ -2311,7 +2215,6 @@ function insert_from_table_bolshoe_sportloto_for_participants()
 
 add_action('wp_ajax_get_bolshoe_sportloto_for_participants', 'get_bolshoe_sportloto_for_participants');
 add_action('wp_ajax_nopriv_get_bolshoe_sportloto_for_participants', 'get_bolshoe_sportloto_for_participants');
-
 function get_bolshoe_sportloto_for_participants()
 {
 	global $wpdb;
@@ -2331,8 +2234,8 @@ function get_bolshoe_sportloto_for_participants()
 
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
-		$field_2 = array($row->NUMBER6,$row->NUMBER7);
-		
+		$field_2 = array($row->NUMBER6, $row->NUMBER7);
+
 		for ($i = 1; $i <= 50; $i++) {
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
@@ -2343,7 +2246,7 @@ function get_bolshoe_sportloto_for_participants()
 		for ($i = 1; $i <= 10; $i++) {
 			// Столбец $i
 			calculate_case(function ($nums) use ($i) {
-				return in_array($i,$nums);
+				return in_array($i, $nums);
 			}, $field_2, $field_2_prev, $array_res['COLUMN_' . $i]);
 		}
 		$field_2_prev = $field_2;
@@ -2360,8 +2263,6 @@ function get_bolshoe_sportloto_for_participants()
 
 add_action('wp_ajax_insert_zhilishnaya_lotereya_for_participants', 'insert_from_table_zhilishnaya_lotereya_for_participants');
 add_action('wp_ajax_nopriv_insert_zhilishnaya_lotereya_for_participants', 'insert_from_table_zhilishnaya_lotereya_for_participants');
-
-
 function insert_from_table_zhilishnaya_lotereya_for_participants()
 {
 	global $wpdb;
@@ -2384,7 +2285,6 @@ function insert_from_table_zhilishnaya_lotereya_for_participants()
 
 add_action('wp_ajax_get_zhilishnaya_lotereya_for_participants', 'get_zhilishnaya_lotereya_for_participants');
 add_action('wp_ajax_nopriv_get_zhilishnaya_lotereya_for_participants', 'get_zhilishnaya_lotereya_for_participants');
-
 function get_zhilishnaya_lotereya_for_participants()
 {
 	global $wpdb;
@@ -2421,8 +2321,6 @@ function get_zhilishnaya_lotereya_for_participants()
 
 add_action('wp_ajax_insert_zolotaya_podkova_for_participants', 'insert_from_table_zolotaya_podkova_for_participants');
 add_action('wp_ajax_nopriv_insert_zolotaya_podkova_for_participants', 'insert_from_table_zolotaya_podkova_for_participants');
-
-
 function insert_from_table_zolotaya_podkova_for_participants()
 {
 	global $wpdb;
@@ -2445,7 +2343,6 @@ function insert_from_table_zolotaya_podkova_for_participants()
 
 add_action('wp_ajax_get_zolotaya_podkova_for_participants', 'get_zolotaya_podkova_for_participants');
 add_action('wp_ajax_nopriv_get_zolotaya_podkova_for_participants', 'get_zolotaya_podkova_for_participants');
-
 function get_zolotaya_podkova_for_participants()
 {
 	global $wpdb;
@@ -2484,8 +2381,6 @@ function get_zolotaya_podkova_for_participants()
 
 add_action('wp_ajax_insert_6_45_for_gamers', 'insert_from_table_6_45_for_gamers');
 add_action('wp_ajax_nopriv_insert_6_45_for_gamers', 'insert_from_table_6_45_for_gamers');
-
-
 function insert_from_table_6_45_for_gamers()
 {
 	global $wpdb;
@@ -2508,7 +2403,6 @@ function insert_from_table_6_45_for_gamers()
 
 add_action('wp_ajax_get_6_45_for_gamers', 'get_6_45_for_gamers');
 add_action('wp_ajax_nopriv_get_6_45_for_gamers', 'get_6_45_for_gamers');
-
 function get_6_45_for_gamers()
 {
 	global $wpdb;
@@ -3829,8 +3723,6 @@ function get_6_45_for_gamers()
 
 add_action('wp_ajax_insert_5_36_for_gamers', 'insert_from_table_5_36_for_gamers');
 add_action('wp_ajax_nopriv_insert_5_36_for_gamers', 'insert_from_table_5_36_for_gamers');
-
-
 function insert_from_table_5_36_for_gamers()
 {
 	global $wpdb;
@@ -3853,7 +3745,6 @@ function insert_from_table_5_36_for_gamers()
 
 add_action('wp_ajax_get_5_36_for_gamers', 'get_5_36_for_gamers');
 add_action('wp_ajax_nopriv_get_5_36_for_gamers', 'get_5_36_for_gamers');
-
 function get_5_36_for_gamers()
 {
 	global $wpdb;
@@ -4634,8 +4525,6 @@ function get_5_36_for_gamers()
 
 add_action('wp_ajax_insert_4_20_for_gamers', 'insert_from_table_4_20_for_gamers');
 add_action('wp_ajax_nopriv_insert_4_20_for_gamers', 'insert_from_table_4_20_for_gamers');
-
-
 function insert_from_table_4_20_for_gamers()
 {
 	global $wpdb;
@@ -4658,7 +4547,6 @@ function insert_from_table_4_20_for_gamers()
 
 add_action('wp_ajax_get_4_20_for_gamers', 'get_4_20_for_gamers');
 add_action('wp_ajax_nopriv_get_4_20_for_gamers', 'get_4_20_for_gamers');
-
 function get_4_20_for_gamers()
 {
 	global $wpdb;
@@ -4900,13 +4788,6 @@ function get_4_20_for_gamers()
 	wp_die();
 }
 
-
-add_action('wp_ajax_insert_rapido_2_for_gamers', 'insert_from_table_rapido_2_for_gamers');
-add_action('wp_ajax_nopriv_insert_rapido_2_for_gamers', 'insert_from_table_rapido_2_for_gamers');
-
-
-
-
 add_action('wp_ajax_insert_rapido_2_for_gamers', 'insert_from_table_rapido_2_for_gamers');
 add_action('wp_ajax_nopriv_insert_rapido_2_for_gamers', 'insert_from_table_rapido_2_for_gamers');
 
@@ -4929,7 +4810,6 @@ function insert_from_table_rapido_2_for_gamers()
 
 	wp_die();
 }
-
 
 add_action('wp_ajax_get_rapido_2_for_gamers', 'get_rapido_2_for_gamers');
 add_action('wp_ajax_nopriv_get_rapido_2_for_gamers', 'get_rapido_2_for_gamers');
@@ -5448,7 +5328,6 @@ function get_rapido_2_for_gamers()
 add_action('wp_ajax_insert_24_12_for_gamers', 'insert_from_table_24_12_for_gamers');
 add_action('wp_ajax_nopriv_insert_24_12_for_gamers', 'insert_from_table_24_12_for_gamers');
 
-
 function insert_from_table_24_12_for_gamers()
 {
 	global $wpdb;
@@ -5467,7 +5346,6 @@ function insert_from_table_24_12_for_gamers()
 
 	wp_die();
 }
-
 
 add_action('wp_ajax_get_24_12_for_gamers', 'get_24_12_for_gamers');
 add_action('wp_ajax_nopriv_get_24_12_for_gamers', 'get_24_12_for_gamers');
@@ -6143,11 +6021,8 @@ function get_24_12_for_gamers()
 	wp_die();
 }
 
-
-
 add_action('wp_ajax_insert_duel_for_gamers', 'insert_from_table_duel_for_gamers');
 add_action('wp_ajax_nopriv_insert_duel_for_gamers', 'insert_from_table_duel_for_gamers');
-
 
 function insert_from_table_duel_for_gamers()
 {
@@ -6167,7 +6042,6 @@ function insert_from_table_duel_for_gamers()
 
 	wp_die();
 }
-
 
 add_action('wp_ajax_get_duel_for_gamers', 'get_duel_for_gamers');
 add_action('wp_ajax_nopriv_get_duel_for_gamers', 'get_duel_for_gamers');
@@ -6614,7 +6488,7 @@ function get_duel_for_gamers()
 						return true;
 					}
 				}
-				
+
 				return false;
 			}, $numbers, $numbers_prev, $array_res['NUM_DIV_' . $number]);
 		}
@@ -6875,7 +6749,6 @@ function get_duel_for_gamers()
 add_action('wp_ajax_insert_top_3_for_gamers', 'insert_from_table_top_3_for_gamers');
 add_action('wp_ajax_nopriv_insert_top_3_for_gamers', 'insert_from_table_top_3_for_gamers');
 
-
 function insert_from_table_top_3_for_gamers()
 {
 	global $wpdb;
@@ -6894,7 +6767,6 @@ function insert_from_table_top_3_for_gamers()
 
 	wp_die();
 }
-
 
 add_action('wp_ajax_get_top_3_for_gamers', 'get_top_3_for_gamers');
 add_action('wp_ajax_nopriv_get_top_3_for_gamers', 'get_top_3_for_gamers');
@@ -7327,8 +7199,6 @@ function get_top_3_for_gamers()
 
 add_action('wp_ajax_insert_keno_for_gamers', 'insert_from_table_keno_for_gamers');
 add_action('wp_ajax_nopriv_insert_keno_for_gamers', 'insert_from_table_keno_for_gamers');
-
-
 function insert_from_table_keno_for_gamers()
 {
 	global $wpdb;
@@ -7351,7 +7221,6 @@ function insert_from_table_keno_for_gamers()
 
 add_action('wp_ajax_get_keno_for_gamers', 'get_keno_for_gamers');
 add_action('wp_ajax_nopriv_get_keno_for_gamers', 'get_keno_for_gamers');
-
 function get_keno_for_gamers()
 {
 	global $wpdb;
@@ -7537,8 +7406,7 @@ function get_keno_for_gamers()
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array(); 
-	foreach ($rows as $row) {
+	$numbers_prev = array(); foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15, $row->NUMBER16, $row->NUMBER17, $row->NUMBER18, $row->NUMBER19, $row->NUMBER20);
 		for ($number = 11; $number <= 80; $number++) {
 			// Любой из выпавших номеров кратен $number
@@ -7908,8 +7776,6 @@ function get_keno_for_gamers()
 
 add_action('wp_ajax_insert_6_36_for_gamers', 'insert_from_table_6_36_for_gamers');
 add_action('wp_ajax_nopriv_insert_6_36_for_gamers', 'insert_from_table_6_36_for_gamers');
-
-
 function insert_from_table_6_36_for_gamers()
 {
 	global $wpdb;
@@ -7932,7 +7798,6 @@ function insert_from_table_6_36_for_gamers()
 
 add_action('wp_ajax_get_6_36_for_gamers', 'get_6_36_for_gamers');
 add_action('wp_ajax_nopriv_get_6_36_for_gamers', 'get_6_36_for_gamers');
-
 function get_6_36_for_gamers()
 {
 	global $wpdb;
@@ -8206,8 +8071,6 @@ function get_6_36_for_gamers()
 
 add_action('wp_ajax_insert_rocketbingo_for_gamers', 'insert_from_table_rocketbingo_for_gamers');
 add_action('wp_ajax_nopriv_insert_rocketbingo_for_gamers', 'insert_from_table_rocketbingo_for_gamers');
-
-
 function insert_from_table_rocketbingo_for_gamers()
 {
 	global $wpdb;
@@ -8230,7 +8093,6 @@ function insert_from_table_rocketbingo_for_gamers()
 
 add_action('wp_ajax_get_rocketbingo_for_gamers', 'get_rocketbingo_for_gamers');
 add_action('wp_ajax_nopriv_get_rocketbingo_for_gamers', 'get_rocketbingo_for_gamers');
-
 function get_rocketbingo_for_gamers()
 {
 	global $wpdb;
@@ -8859,8 +8721,6 @@ function get_rocketbingo_for_gamers()
 
 add_action('wp_ajax_insert_7_49_for_gamers', 'insert_from_table_7_49_for_gamers');
 add_action('wp_ajax_nopriv_insert_7_49_for_gamers', 'insert_from_table_7_49_for_gamers');
-
-
 function insert_from_table_7_49_for_gamers()
 {
 	global $wpdb;
@@ -8883,7 +8743,6 @@ function insert_from_table_7_49_for_gamers()
 
 add_action('wp_ajax_get_7_49_for_gamers', 'get_7_49_for_gamers');
 add_action('wp_ajax_nopriv_get_7_49_for_gamers', 'get_7_49_for_gamers');
-
 function get_7_49_for_gamers()
 {
 	global $wpdb;
@@ -9253,8 +9112,6 @@ function get_7_49_for_gamers()
 
 add_action('wp_ajax_insert_bingo_75_for_gamers', 'insert_from_table_bingo_75_for_gamers');
 add_action('wp_ajax_nopriv_insert_bingo_75_for_gamers', 'insert_from_table_bingo_75_for_gamers');
-
-
 function insert_from_table_bingo_75_for_gamers()
 {
 	global $wpdb;
@@ -9274,10 +9131,8 @@ function insert_from_table_bingo_75_for_gamers()
 	wp_die();
 }
 
-
 add_action('wp_ajax_get_bingo_75_for_gamers', 'get_bingo_75_for_gamers');
 add_action('wp_ajax_nopriv_get_bingo_75_for_gamers', 'get_bingo_75_for_gamers');
-
 function get_bingo_75_for_gamers()
 {
 	global $wpdb;
@@ -9558,12 +9413,8 @@ function get_bingo_75_for_gamers()
 	wp_die();
 }
 
-
-
 add_action('wp_ajax_insert_velikolepnaya_8_for_gamers', 'insert_from_table_velikolepnaya_8_for_gamers');
 add_action('wp_ajax_nopriv_insert_velikolepnaya_8_for_gamers', 'insert_from_table_velikolepnaya_8_for_gamers');
-
-
 function insert_from_table_velikolepnaya_8_for_gamers()
 {
 	global $wpdb;
@@ -9586,7 +9437,6 @@ function insert_from_table_velikolepnaya_8_for_gamers()
 
 add_action('wp_ajax_get_velikolepnaya_8_for_gamers', 'get_velikolepnaya_8_for_gamers');
 add_action('wp_ajax_nopriv_get_velikolepnaya_8_for_gamers', 'get_velikolepnaya_8_for_gamers');
-
 function get_velikolepnaya_8_for_gamers()
 {
 	global $wpdb;
@@ -9820,7 +9670,6 @@ function get_velikolepnaya_8_for_gamers()
 add_action('wp_ajax_insert_lavina_prizov_for_gamers', 'insert_from_table_lavina_prizov_for_gamers');
 add_action('wp_ajax_nopriv_insert_lavina_prizov_for_gamers', 'insert_from_table_lavina_prizov_for_gamers');
 
-
 function insert_from_table_lavina_prizov_for_gamers()
 {
 	global $wpdb;
@@ -9843,7 +9692,6 @@ function insert_from_table_lavina_prizov_for_gamers()
 
 add_action('wp_ajax_get_lavina_prizov_for_gamers', 'get_lavina_prizov_for_gamers');
 add_action('wp_ajax_nopriv_get_lavina_prizov_for_gamers', 'get_lavina_prizov_for_gamers');
-
 function get_lavina_prizov_for_gamers()
 {
 	global $wpdb;
