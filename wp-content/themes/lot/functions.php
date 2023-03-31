@@ -212,10 +212,10 @@ function insert_from_table_mechtalion_for_participants()
 	} else
 		wp_die();
 
-	
+
 	insert_values_to_table('mechtalion_for_participants', 37, $rows);
 
-	echo json_encode(['success' => 'true'],true);
+	echo json_encode(['success' => 'true'], true);
 	wp_die();
 }
 
@@ -237,7 +237,7 @@ function get_mechtalion_for_participants()
 	save_table_results_to_database('mechtalion_for_participants', $array_res);
 	// выводим значение 
 	echo json_encode(array("results" => $array_res, "update" => date('Y:m:d H:i:s')));
-	
+
 	wp_die();
 }
 
@@ -9520,14 +9520,12 @@ function get_velikolepnaya_8_for_gamers()
 
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
-	
+
 	$special_prev = 0;
-	$numbers_prev = array(); 
-	
-	foreach ($rows as $row) {
+	$numbers_prev = array(); foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
 		$special = $row->NUMBER9;
-		
+
 		for ($number = 1; $number <= 20; $number++) {
 			// Выпадет номер $number
 			calculate_case(function ($nums) use ($number) {
@@ -9819,6 +9817,17 @@ function get_lavina_prizov_for_gamers()
 
 		// Выпадут совпадающие номера на разных полях
 		calculate_case(function ($nums) {
+			$field1 = array_slice($nums, 0, 4);
+			$field2 = array_slice($nums, 4);
+
+			for ($i = 0; $i < count($field1); $i++) {
+				for ($j = 0; $j < count($field2); $j++) {
+					if ($field1[$i] == $field2[$j]) {
+						return true;
+					}
+				}
+			}
+
 			return false;
 		}, $numbers, $numbers_prev, $array_res['ADJACENT_NUMBERS_DIFF_FIELDS']);
 

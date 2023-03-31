@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="SqlDialectMappings">
-    <file url="remoteDeploymentFS://&lt;aca39034-36ed-452e-a63f-fd8af3c7b62c&gt;/wp-content/themes/lot/templates/template-lottery-forsaj_75_for_participants.php" dialect="GenericSQL" />
-    <file url="PROJECT" dialect="MySQL" />
-  </component>
-</project>
