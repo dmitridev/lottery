@@ -210,7 +210,6 @@ function prepare_table_values()
 	return array('VALUE_YES_NOW' => 0, 'VALUE_NO_NOW' => 0, 'VALUE_YES_MAX' => 0, 'VALUE_NO_MAX' => 0);
 }
 
-
 // $value_to_change = array('VALUE_YES_NOW' => 0, 'VALUE_NO_NOW' => 0, 'VALUE_YES_MAX' => 0, 'VALUE_NO_MAX' => 0);
 function calculate_case($condition, &$numbers, &$numbers_prev, &$value_to_change)
 {
@@ -263,7 +262,6 @@ function insert_from_table_mechtalion_for_participants()
 
 	wp_die();
 }
-
 
 add_action('wp_ajax_get_mechtalion_for_participants', 'get_mechtalion_for_participants');
 add_action('wp_ajax_nopriv_get_mechtalion_for_participants', 'get_mechtalion_for_participants');
@@ -666,8 +664,8 @@ function get_lavina_prizov_for_participants()
 	$array_res = array();
 
 	for ($i = 1; $i <= 20; $i++) {
-		$array_res['FIELD_1_NUM_'.$i] = prepare_table_values();
-		$array_res['FIELD_2_NUM_'.$i] = prepare_table_values();
+		$array_res['FIELD_1_NUM_' . $i] = prepare_table_values();
+		$array_res['FIELD_2_NUM_' . $i] = prepare_table_values();
 	}
 
 
@@ -683,12 +681,12 @@ function get_lavina_prizov_for_participants()
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res['FIELD_1_NUM_'.$i]);
+			}, $numbers, $numbers_prev, $array_res['FIELD_1_NUM_' . $i]);
 
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers_2, $numbers_2_prev, $array_res['FIELD_2_NUM_'.$i]);
+			}, $numbers_2, $numbers_2_prev, $array_res['FIELD_2_NUM_' . $i]);
 		}
 
 		$numbers_2_prev = $numbers_2;
@@ -814,14 +812,14 @@ function get_5_36_for_participants()
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
 		for ($i = 1; $i <= 4; $i++) {
 			// выпадет дополнительный номер $i
 			calculate_case(function ($special) use ($i) {
 				return $special == $i;
-			}, $special, $special_prev, $array_res['DOP_NUM_'.$i]);
+			}, $special, $special_prev, $array_res['DOP_NUM_' . $i]);
 		}
 
 		$special_prev = $special;
@@ -888,12 +886,12 @@ function get_4_20_for_participants()
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res['FIELD_1_NUM_'.$i]);
+			}, $numbers, $numbers_prev, $array_res['FIELD_1_NUM_' . $i]);
 
 			//ПОЛЕ 2: Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers_2, $numbers_2_prev, $array_res['FIELD_2_NUM_'.$i]);
+			}, $numbers_2, $numbers_2_prev, $array_res['FIELD_2_NUM_' . $i]);
 		}
 
 		$numbers_2_prev = $numbers_2;
@@ -1737,12 +1735,12 @@ function get_duel_for_participants()
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res['FIELD_1_NUM_'.$i]);
+			}, $numbers, $numbers_prev, $array_res['FIELD_1_NUM_' . $i]);
 
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers_2, $numbers_2_prev, $array_res['FIELD_2_NUM_'.$i]);
+			}, $numbers_2, $numbers_2_prev, $array_res['FIELD_2_NUM_' . $i]);
 		}
 
 		$numbers_2_prev = $numbers_2;
@@ -2207,7 +2205,7 @@ function get_rus_loto_for_participants()
 
 	foreach ($rows as $row) {
 		$array = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
-		$numbers = filter_numbers(range(1,90),$array);
+		$numbers = filter_numbers(range(1, 90), $array);
 
 		for ($i = 1; $i <= 90; $i++) {
 			// Выпадет номер $i
@@ -2215,7 +2213,7 @@ function get_rus_loto_for_participants()
 				return in_array($i, $nums);
 			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
-		
+
 		$numbers_prev = $numbers;
 	}
 
@@ -2335,8 +2333,8 @@ function get_bolshoe_sportloto_for_participants()
 
 	foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5);
-		$field_2 = array($row->NUMBER6,$row->NUMBER7);
-		
+		$field_2 = array($row->NUMBER6, $row->NUMBER7);
+
 		for ($i = 1; $i <= 50; $i++) {
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
@@ -2347,7 +2345,7 @@ function get_bolshoe_sportloto_for_participants()
 		for ($i = 1; $i <= 10; $i++) {
 			// Столбец $i
 			calculate_case(function ($nums) use ($i) {
-				return in_array($i,$nums);
+				return in_array($i, $nums);
 			}, $field_2, $field_2_prev, $array_res['COLUMN_' . $i]);
 		}
 		$field_2_prev = $field_2;
@@ -2569,6 +2567,7 @@ function get_6_45_for_gamers()
 		'DIFF_MAX_MIN_GT_32.5',
 		'DIFF_MAX_MIN_GT_35.5',
 		'SUM_EVEN',
+		'FIRST_GT_LAST',
 		'EVEN_GT_ODD',
 		'SUM_EVEN_GT_SUM_ODD',
 		'SUM_1_10_GT_5.5',
@@ -2930,7 +2929,7 @@ function get_6_45_for_gamers()
 		'COUNT_41_45_EQ_1'
 	);
 
-	
+
 	$array_res = array();
 
 	foreach ($keys as $key)
@@ -3002,6 +3001,11 @@ function get_6_45_for_gamers()
 			return (array_sum($nums) % 2) == 0;
 		}, $numbers, $numbers_prev, $array_res['SUM_EVEN']);
 
+		// Первый номер Больше последнего
+		calculate_case(function ($nums) {
+			return $nums[0] > end($nums);
+		}, $numbers, $numbers_prev, $array_res['FIRST_GT_LAST']);
+
 		// Четных больше, чем НЕчетных
 		calculate_case(function ($nums) {
 			$even = count(array_filter($nums, function ($num) {
@@ -3015,18 +3019,15 @@ function get_6_45_for_gamers()
 
 		// Сумма выпавших четных номеров больше, чем сумма выпавших НЕчетных номеров
 		calculate_case(function ($nums) {
-			return true;
-			/*
 			$even = array_filter($nums, function ($num) {
 				return $num % 2 == 0;
 			});
-			
+
 			$odd = array_filter($nums, function ($num) {
 				return $num % 2 != 0;
 			});
 
 			return array_sum($even) > array_sum($odd);
-			*/
 		}, $numbers, $numbers_prev, $array_res['SUM_EVEN_GT_SUM_ODD']);
 
 		// Сумма всех выпавших номеров от 1 до 10 Больше 5.5
@@ -4040,7 +4041,8 @@ function get_5_36_for_gamers()
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6);
 
 		for ($number = 4; $number <= 36; $number++) {
-			if($number == 32) continue;
+			if ($number == 32)
+				continue;
 			// Любой из выпавших номеров кратен $number (0 не кратное)
 			calculate_case(function ($nums) use ($number) {
 				$count = count($nums);
@@ -4490,7 +4492,7 @@ function get_5_36_for_gamers()
 			return $even < 2;
 		}, $numbers, $numbers_prev, $array_res['EVEN_LT_2']);
 
-		
+
 		// Количество выпавших Четных номеров Больше 2
 		calculate_case(function ($nums) {
 			$even = count(array_filter($nums, function ($num) {
@@ -4708,8 +4710,7 @@ function get_4_20_for_gamers()
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array(); 
-	foreach ($rows as $row) {
+	$numbers_prev = array(); foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
 
 		for ($number = 7; $number <= 11; $number++) {
@@ -4721,7 +4722,7 @@ function get_4_20_for_gamers()
 						return true;
 					}
 				}return false;
-			}, $numbers, $numbers_prev, $array_res['ANY_DIV_'.$number]);
+			}, $numbers, $numbers_prev, $array_res['ANY_DIV_' . $number]);
 		}
 
 		// Наименьший выпавший номер Чет
@@ -4807,7 +4808,7 @@ function get_4_20_for_gamers()
 		for ($number = 12; $number <= 18; $number++) {
 			// Разность наибольшего и наименьшего из выпавших номеров Больше $number + 0.5
 			calculate_case(function ($nums) use ($number) {
-				
+
 				return max($nums) - min($nums) > ($number + 0.5);
 			}, $numbers, $numbers_prev, $array_res['DIFF_MAX_MIN_GT_' . $number . '.5']);
 		}
@@ -4999,9 +5000,8 @@ function get_rapido_2_for_gamers()
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array(); 
-	$special_prev = 0;
-	foreach ($rows as $row) {
+	$numbers_prev = array();
+	$special_prev = 0; foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
 		$special = $row->NUMBER9;
 
@@ -6572,7 +6572,8 @@ function get_duel_for_gamers()
 
 		for ($number = 4; $number <= 8; $number++) {
 			// Любой из выпавших номеров кратен $number (0-не кратное)
-			if($number == 5) continue;
+			if ($number == 5)
+				continue;
 			calculate_case(function ($nums) use ($number) {
 				$count = count($nums);
 				for ($i = 0; $i < $count; $i++) {
@@ -6580,7 +6581,7 @@ function get_duel_for_gamers()
 						return true;
 					}
 				}
-				
+
 				return false;
 			}, $numbers, $numbers_prev, $array_res['NUM_DIV_' . $number]);
 		}
@@ -6970,7 +6971,8 @@ function get_top_3_for_gamers()
 		}, $numbers, $numbers_prev, $array_res['SUM_GT_10.5']);
 
 		for ($number = 12; $number <= 16; $number++) {
-			if($number == 15) continue;
+			if ($number == 15)
+				continue;
 			// Сумма всех выпавших номеров Больше 12.5
 			calculate_case(function ($nums) use ($number) {
 				return array_sum($nums) > ($number + 0.5);
@@ -7309,7 +7311,7 @@ function insert_from_table_keno_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_keno_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_keno_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19]. ")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_keno_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -7503,8 +7505,7 @@ function get_keno_for_gamers()
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array(); 
-	foreach ($rows as $row) {
+	$numbers_prev = array(); foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15, $row->NUMBER16, $row->NUMBER17, $row->NUMBER18, $row->NUMBER19, $row->NUMBER20);
 		for ($number = 11; $number <= 80; $number++) {
 			// Любой из выпавших номеров кратен $number
@@ -7985,7 +7986,8 @@ function get_6_36_for_gamers()
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6);
 
 		for ($number = 4; $number <= 36; $number++) {
-			if($number == 32) continue;
+			if ($number == 32)
+				continue;
 			// Любой из выпавших номеров кратен $number (0 не кратное)
 			calculate_case(function ($nums) use ($number) {
 				$count = count($nums);
@@ -8383,7 +8385,7 @@ function get_rocketbingo_for_gamers()
 			// Выпадет номер $i
 			calculate_case(function ($nums) use ($i) {
 				return in_array($i, $nums);
-			}, $numbers, $numbers_prev, $array_res['NUM_'.$i]);
+			}, $numbers, $numbers_prev, $array_res['NUM_' . $i]);
 		}
 
 		for ($i = 1; $i <= 35; $i++) {
@@ -8395,7 +8397,7 @@ function get_rocketbingo_for_gamers()
 
 		for ($i = 1; $i <= 35; $i++) {
 			// $i-й номер Чет
-			calculate_case(function ($nums) use($i) {
+			calculate_case(function ($nums) use ($i) {
 				return $nums[$i - 1] % 2 == 0;
 			}, $numbers, $numbers_prev, $array_res['NUM_' . $i . '_EVEN']);
 		}
@@ -8438,7 +8440,7 @@ function get_rocketbingo_for_gamers()
 					return $num % 2 != 0;
 				});
 				return count($filtered) > ($number + 0.5);
-			
+
 			}, $numbers, $numbers_prev, $array_res['COUNT_ODD_GT_' . $number . '.5']);
 		}
 
@@ -9217,7 +9219,7 @@ function insert_from_table_bingo_75_for_gamers()
 	$wpdb->query('DELETE FROM `wp_lottery_bingo_75_for_gamers`');
 	var_dump($rows);
 	foreach ($rows as $item) {
-		$sql_request_about_insert = "INSERT INTO `wp_lottery_bingo_75_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22,NUMBER23,NUMBER24,NUMBER25,NUMBER26,NUMBER27,NUMBER28) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19] . ',' . $item->numbers[20] . ',' . $item->numbers[21] . ',' . $item->numbers[22] . ',' . $item->numbers[23] . ',' . $item->numbers[24] . ',' . $item->numbers[25] . ',' . $item->numbers[26] . ',' . $item->numbers[27].")";
+		$sql_request_about_insert = "INSERT INTO `wp_lottery_bingo_75_for_gamers` (`CURRENT`,NUMBER1,NUMBER2,NUMBER3,NUMBER4,NUMBER5,NUMBER6,NUMBER7,NUMBER8,NUMBER9,NUMBER10,NUMBER11,NUMBER12,NUMBER13,NUMBER14,NUMBER15,NUMBER16,NUMBER17,NUMBER18,NUMBER19,NUMBER20,NUMBER21,NUMBER22,NUMBER23,NUMBER24,NUMBER25,NUMBER26,NUMBER27,NUMBER28) VALUES(" . $item->number . ',' . $item->numbers[0] . ',' . $item->numbers[1] . ',' . $item->numbers[2] . ',' . $item->numbers[3] . ',' . $item->numbers[4] . ',' . $item->numbers[5] . ',' . $item->numbers[6] . ',' . $item->numbers[7] . ',' . $item->numbers[8] . ',' . $item->numbers[9] . ',' . $item->numbers[10] . ',' . $item->numbers[11] . ',' . $item->numbers[12] . ',' . $item->numbers[13] . ',' . $item->numbers[14] . ',' . $item->numbers[15] . ',' . $item->numbers[16] . ',' . $item->numbers[17] . ',' . $item->numbers[18] . ',' . $item->numbers[19] . ',' . $item->numbers[20] . ',' . $item->numbers[21] . ',' . $item->numbers[22] . ',' . $item->numbers[23] . ',' . $item->numbers[24] . ',' . $item->numbers[25] . ',' . $item->numbers[26] . ',' . $item->numbers[27] . ")";
 		$wpdb->query($sql_request_about_insert);
 	}
 
@@ -9349,7 +9351,7 @@ function get_bingo_75_for_gamers()
 
 	$numbers_prev = array(); foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8, $row->NUMBER9, $row->NUMBER10, $row->NUMBER11, $row->NUMBER12, $row->NUMBER13, $row->NUMBER14, $row->NUMBER15, $row->NUMBER16, $row->NUMBER17, $row->NUMBER18, $row->NUMBER19, $row->NUMBER20, $row->NUMBER21, $row->NUMBER22, $row->NUMBER23, $row->NUMBER24, $row->NUMBER25, $row->NUMBER26, $row->NUMBER27, $row->NUMBER28);
-		
+
 		for ($number = 8; $number <= 12; $number++) {
 			// Любой из выпавших номеров кратен 8 (0 не кратное)
 			calculate_case(function ($nums) use ($number) {
@@ -9619,9 +9621,8 @@ function get_velikolepnaya_8_for_gamers()
 	foreach ($keys as $key)
 		$array_res[$key] = prepare_table_values();
 
-	$numbers_prev = array(); 
-	$special_prev = 0;
-	foreach ($rows as $row) {
+	$numbers_prev = array();
+	$special_prev = 0; foreach ($rows as $row) {
 		$numbers = array($row->NUMBER1, $row->NUMBER2, $row->NUMBER3, $row->NUMBER4, $row->NUMBER5, $row->NUMBER6, $row->NUMBER7, $row->NUMBER8);
 		$special = $row->NUMBER9;
 
@@ -9919,12 +9920,12 @@ function get_lavina_prizov_for_gamers()
 
 		// Выпадут совпадающие номера на разных полях
 		calculate_case(function ($nums) {
-			$field1 = array_slice($nums,0,4);
-			$field2 = array_slice($nums,4);
-			
-			for($i=0;$i<count($field1);$i++){
-				for($j=0;$j<count($field2);$j++){
-					if($field1[$i] == $field2[$j]){
+			$field1 = array_slice($nums, 0, 4);
+			$field2 = array_slice($nums, 4);
+
+			for ($i = 0; $i < count($field1); $i++) {
+				for ($j = 0; $j < count($field2); $j++) {
+					if ($field1[$i] == $field2[$j]) {
 						return true;
 					}
 				}
